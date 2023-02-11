@@ -1,0 +1,45 @@
+db.sqlite3
+*.sqlite3
+
+myenv
+myvenv
+myvirtualenv
+
+# for GCP authentication
+gcp-service-account-key.json
+
+# for setting GCP bucket CORS conf
+cors.json
+
+.env
+
+
+static
+!static/css
+!static/files
+!static/fonts
+!static/img
+!static/js
+!static/Fontello ADD ICONS.txt
+
+media
+_local_snippets/
+_db_saves/
+
+PyCharm_ReferenceCard.pdf
+
+
+.DS_Store
+.idea
+*.pyc
+*~
+__pycache__
+
+
+sandbox*
+
+myproject/secret.json
+
+
+.htmlhintrc
+Postgres.txt
