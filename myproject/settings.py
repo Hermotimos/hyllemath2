@@ -49,6 +49,7 @@ else:
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
+DEBUG = True
 
 
 
@@ -73,11 +74,11 @@ if APPENGINE_URL:
     SECURE_SSL_REDIRECT = True
 
     # For get_absolute_url methods
-    SERVER_ADDRESS = "https://autarchia.oa.r.appspot.com"
+    SERVER_ADDRESS = "https://hyllemath2.lm.r.appspot.com"
 
 else:
     CSRF_TRUSTED_ORIGINS = [
-        'https://8000-cs-570532252862-default.cs-europe-west4-fycr.cloudshell.dev'
+        'https://8000-cs-570532252862-default.cs-europe-west4-bhnf.cloudshell.dev'
     ]
     ALLOWED_HOSTS = [
         '127.0.0.1',
@@ -101,11 +102,11 @@ INSTALLED_APPS = [
 
     # imported
     # 'crispy_forms',
-    # 'debug_toolbar',
+    'debug_toolbar',
     # 'django_filters',
 
     # own
-    "polls",
+    # "polls"
 ]
 
 MIDDLEWARE = [
@@ -120,7 +121,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "mysite.urls"
+ROOT_URLCONF = "myproject.urls"
 
 TEMPLATES = [
     {
@@ -141,7 +142,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "mysite.wsgi.application"
+WSGI_APPLICATION = "myproject.wsgi.application"
 
 
 
@@ -228,10 +229,10 @@ if os.getenv('GAE_ENV', '').startswith('standard'):
 
     # TODO check if only one is needed: GS_CREDENTIALS or GS_DEFAULT_ACL
 
-    DEFAULT_FILE_STORAGE = 'mysite.storages.GoogleCloudMediaFileStorage'
-    STATICFILES_STORAGE = 'mysite.storages.GoogleCloudStaticFileStorage'
+    DEFAULT_FILE_STORAGE = 'myproject.storages.GoogleCloudMediaFileStorage'
+    STATICFILES_STORAGE = 'myproject.storages.GoogleCloudStaticFileStorage'
 
-    GS_PROJECT_ID = 'autarchia'
+    GS_PROJECT_ID = 'hyllemath2'
     GS_BUCKET_NAME = env("GS_BUCKET_NAME")
 
     STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
@@ -246,7 +247,7 @@ else:
     # STATIC_URL = "/static/"
     # STATICFILES_DIRS = []
 
-    # STATIC_ROOT necessary oly in production (but also neede for collectstatic)
+    # STATIC_ROOT necessary only in production (but also needed for collectstatic)
     STATIC_URL = 'static/'
     STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
@@ -263,8 +264,8 @@ INTERNAL_IPS = ['127.0.0.1', ]
 # https://stackoverflow.com/questions/16303098/django-development-server-and-mime-types/64055514#64055514
 # After editing registry - restart local server for changes to take effect
 
-# Disable in production (even if DEBUG is set to true)
-if os.getenv('GAE_ENV', '').startswith('standard'):
-    DEBUG_TOOLBAR_CONFIG = {
-        'SHOW_TOOLBAR_CALLBACK': lambda r: False,
-    }
+
+
+
+# Default 1000 is too low for large inlines in admin
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000

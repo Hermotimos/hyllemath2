@@ -11,16 +11,16 @@
 # python manage.py createsuperuser
 # python manage.py makemigrations APPNAME
 # python manage.py migrate
-# create 'static' dir
+# create 'static' and 'media' dir
 # python manage.py collectstatic (!! uncomment the right static conf in settings.py)
 # python manage.py runserver
 
 <!-- GCP -->
 # create GCP project
 
-# create GCP instance or a database in an existing instance
-# enable Cloud SQL API for the project: https://console.cloud.google.com/apis/library/sqladmin.googleapis.com?project=autarchia
-# enable Secrets API for the project
+# create GCP instance or a database in an existing instance (and a user)
+# enable Cloud SQL API for the project: https://console.cloud.google.com/apis/library/sqladmin.googleapis.com?project=hyllemath2
+# enable Secrets API for the project: https://console.cloud.google.com/apis/enableflow?apiid=secretmanager.googleapis.com&redirect=https:%2F%2Fconsole.cloud.google.com&_ga=2.160338549.973602576.1676100998-1374703551.1676027567&authuser=1&project=hyllemath2
 
 # enter cloud console and: "gcloud config set project PROJECTNAME"
 # git clone your repo (!! to the right dir !!)
