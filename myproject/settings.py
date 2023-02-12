@@ -11,7 +11,7 @@ from google.oauth2 import service_account
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-IS_LOCAL_ENVIRON = True if os.environ.get('COMPUTERNAME') else False
+IS_LOCAL_ENVIRON = True if os.environ.get("COMPUTERNAME") else False
 
 
 
@@ -68,7 +68,7 @@ if APPENGINE_URL:
 
     # ALLOWED_HOSTS = [urlparse(APPENGINE_URL).netloc]
     # For enabling older app versions to host site
-    ALLOWED_HOSTS = ['*']
+    ALLOWED_HOSTS = ["*"]
 
     CSRF_TRUSTED_ORIGINS = [APPENGINE_URL]
     SECURE_SSL_REDIRECT = True
@@ -78,14 +78,14 @@ if APPENGINE_URL:
 
 else:
     CSRF_TRUSTED_ORIGINS = [
-        'https://8000-cs-570532252862-default.cs-europe-west4-bhnf.cloudshell.dev'
+        "https://8000-cs-570532252862-default.cs-europe-west4-bhnf.cloudshell.dev"
     ]
     ALLOWED_HOSTS = [
-        '127.0.0.1',
+        "127.0.0.1",
     ]
 
     # For get_absolute_url methods
-    SERVER_ADDRESS = '127.0.0.1:8000'
+    SERVER_ADDRESS = "127.0.0.1:8000"
 
 
 
@@ -101,12 +101,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # imported
-    # 'crispy_forms',
-    'debug_toolbar',
-    # 'django_filters',
+    "crispy_forms",
+    "debug_toolbar",
+    # "django_filters",
 
     # own
-    # "polls"
+    "users",
+    "prsp",
 ]
 
 MIDDLEWARE = [
@@ -126,7 +127,7 @@ ROOT_URLCONF = "myproject.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, 'templates')],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -135,8 +136,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
-            'libraries': {
-                'custom_filters': 'templatetags.custom_filters',
+            "libraries": {
+                "custom_filters": "templatetags.custom_filters",
             },
         },
     },
@@ -149,20 +150,20 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 # -----------------------------------------------------------------------------
 # Database
 
-if os.getenv('GAE_ENV', '').startswith('standard'):
+if os.getenv("GAE_ENV", "").startswith("standard"):
     # Requires DATABASE_URL environmental variable to be set
     DATABASES = {
         "default": env.db()
     }
 elif IS_LOCAL_ENVIRON:
     DATABASES = {
-        'default': {
-            'ENGINE': env('LOCAL_DB_ENGINE'),
-            'NAME': env('LOCAL_DB_DBNAME'),
-            'USER': env('LOCAL_DB_USER'),
-            'PASSWORD': env('LOCAL_DB_PASSWORD'),
-            'HOST': env('LOCAL_DB_HOST'),
-            'PORT': env('LOCAL_DB_PORT'),
+        "default": {
+            "ENGINE": env("LOCAL_DB_ENGINE"),
+            "NAME": env("LOCAL_DB_DBNAME"),
+            "USER": env("LOCAL_DB_USER"),
+            "PASSWORD": env("LOCAL_DB_PASSWORD"),
+            "HOST": env("LOCAL_DB_HOST"),
+            "PORT": env("LOCAL_DB_PORT"),
         }
     }
 else:
@@ -174,7 +175,7 @@ else:
     }
 
 
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 
 
@@ -202,9 +203,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
-LANGUAGE_CODE = 'pl'
+LANGUAGE_CODE = "pl"
 pl_formats.DATE_FORMAT = "Y-m-d"
-TIME_ZONE = 'Europe/Warsaw'
+TIME_ZONE = "Europe/Warsaw"
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -214,7 +215,7 @@ USE_TZ = True
 # -----------------------------------------------------------------------------
 # Static files (CSS, JavaScript, Images)
 
-if os.getenv('GAE_ENV', '').startswith('standard'):
+if os.getenv("GAE_ENV", "").startswith("standard"):
     # https://medium.com/@umeshsaruk/upload-to-google-cloud-storage-using-django-storages-72ddec2f0d05
 
     # For media storage in the bucket
@@ -225,14 +226,14 @@ if os.getenv('GAE_ENV', '').startswith('standard'):
     # which should by possible from App Engine
     # https://pnote.eu/notes/django-app-engine-user-uploaded-files/
 
-    GS_DEFAULT_ACL = 'publicRead'
+    GS_DEFAULT_ACL = "publicRead"
 
     # TODO check if only one is needed: GS_CREDENTIALS or GS_DEFAULT_ACL
 
-    DEFAULT_FILE_STORAGE = 'myproject.storages.GoogleCloudMediaFileStorage'
-    STATICFILES_STORAGE = 'myproject.storages.GoogleCloudStaticFileStorage'
+    DEFAULT_FILE_STORAGE = "myproject.storages.GoogleCloudMediaFileStorage"
+    STATICFILES_STORAGE = "myproject.storages.GoogleCloudStaticFileStorage"
 
-    GS_PROJECT_ID = 'hyllemath2'
+    GS_PROJECT_ID = "hyllemath2"
     GS_BUCKET_NAME = env("GS_BUCKET_NAME")
 
     STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
@@ -248,17 +249,17 @@ else:
     # STATICFILES_DIRS = []
 
     # STATIC_ROOT necessary only in production (but also needed for collectstatic)
-    STATIC_URL = 'static/'
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+    STATIC_URL = "static/"
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
-    MEDIA_ROOT = 'media'
-    MEDIA_URL = 'media/'
+    MEDIA_ROOT = "media"
+    MEDIA_URL = "media/"
 
 
 # -----------------------------------------------------------------------------
 # debug-toolbar
 
-INTERNAL_IPS = ['127.0.0.1', ]
+INTERNAL_IPS = ["127.0.0.1", ]
 # debug-toolbar not rendering problem:
 # https://www.taricorp.net/2020/windows-mime-pitfalls/
 # https://stackoverflow.com/questions/16303098/django-development-server-and-mime-types/64055514#64055514
@@ -269,3 +270,8 @@ INTERNAL_IPS = ['127.0.0.1', ]
 
 # Default 1000 is too low for large inlines in admin
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+
+AUTH_USER_MODEL = "users.User"
+LOGIN_REDIRECT_URL = "users:home"
+LOGIN_URL = "users:login"
+LOGOUT_REDIRECT_URL = "users:login"
