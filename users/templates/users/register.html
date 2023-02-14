@@ -3,26 +3,26 @@
 {% load crispy_forms_tags %}
 
 {% block head_extra %}
-    <link rel="stylesheet" href="{% static 'css/users.css' %}">
+<link rel="stylesheet" href="{% static 'css/users.css' %}">
 {% endblock head_extra %}
 
 {% block content %}
-    <br><br><br>
-    <div class="content-section">
-        <form method="POST">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                <b>{{ form|crispy }}</b>
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-dark" type="submit">Utwórz</button>
-            </div>
-        </form>
-        <div class="border-top pt-3">
-            <small>
-                Twoja Postać nadal trzyma się przy życiu?
-                <a class="ml-2" href="{% url 'users:login' %}">Logowanie</a>
-            </small>
-        </div>
+<br><br><br>
+<div class="content-section">
+  <form method="POST">
+    {% csrf_token %}
+    <fieldset class="form-group">
+      <b>{{ form|crispy }}</b>
+    </fieldset>
+    <div class="form-group">
+      <button class="btn btn-dark" type="submit">Utwórz</button>
     </div>
+  </form>
+  <div class="border-top pt-3">
+    <small>
+      Twoja Postać nadal trzyma się przy życiu?
+      <a class="ml-2" href="{% url 'users:login' %}">Logowanie</a>
+    </small>
+  </div>
+</div>
 {% endblock content %}

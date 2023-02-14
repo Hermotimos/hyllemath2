@@ -3,25 +3,25 @@
 {% load crispy_forms_tags %}
 
 {% block head_extra %}
-    <link rel="stylesheet" href="{% static 'css/users.css' %}">
+<link rel="stylesheet" href="{% static 'css/users.css' %}">
 {% endblock head_extra %}
 
 {% block content %}
-    <br><br><br>
-    <div class="content-section">
-        <div class="media">
-            <img class="account-img-profile" src="{{ request.current_profile.image.url }}">
-        </div>
+<br><br><br>
+<div class="content-section">
+  <div class="media">
+    <img class="account-img-profile" src="{{ request.current_profile.image.url }}">
+  </div>
 
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                {{ character_form|crispy }}
-                {{ profile_form|crispy }}
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-dark" type="submit">Zapisz</button>
-            </div>
-        </form>
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <fieldset class="form-group">
+      {{ character_form|crispy }}
+      {{ profile_form|crispy }}
+    </fieldset>
+    <div class="form-group">
+      <button class="btn btn-dark" type="submit">Zapisz</button>
     </div>
+  </form>
+</div>
 {% endblock content %}

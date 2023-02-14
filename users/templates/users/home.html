@@ -3,62 +3,63 @@
 
 {% block content %}
 
-    <article>
-        
-        <!--   Beginning of a random paragraph from a random GameEvent    -->
-        {% if rand_gameevent %}
-            <section>
-                <div class="container px-3 pb-3 mb-4">
-                    <div class="row">
-                        <a href="{% url 'chronicles:chronicle-game' rand_gameevent.game.id %}#event_{{ rand_gameevent.id }}">
-                            <p class="font-18 font-italic px-2 pb-0 mt-3 mb-0 text-justify content-section border-none fading-top-bottom
-                                {% if request.current_profile not in event.participants.all and request.current_profile.status != 'gm' %} text-muted {% endif %}"
-                                data-toggle="tooltip" data-placement="bottom" data-html="true" title='<span class="font-italic">Pokaż Kronikę wydarzenia</span>'>
-                                {{ rand_gameevent.caption }}
-                            </p>
-                        </a>
-                    </div>
-                </div>
-            </section>
-        {% endif %}
-        
-        <!--   Random pictures from Prosoponomikon    -->
-        <section>
-            <div class="container px-2 pb-3 mb-4">
-                <div class="row">
-                    {% for acquaintanceship in rand_acquaintanceships %}
-                        {% with show_caption=False %}
-                            {% include 'prosoponomikon/_acquaintance_img.html' %}
-                        {% endwith %}
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-        
-        <!--   Random pictures from Toponomikon    -->
-        <section>
-            <div class="container px-2 pb-3 mb-4">
-                <div class="row">
-                    {% for location in rand_locations %}
-                        <div class="col-sm-12 col-lg-6 px-2">
-                            {% with show_caption=False %}
-                                {% include 'toponomikon/_loc_img.html' %}
-                            {% endwith %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-        
-        <!--   Random pictures from Therarion    -->
-        <section>
-            <div class="container px-2">
-                <div class="row">
-                
-                </div>
-            </div>
-        </section>
-        
-    </article>
+<article>
+
+  <!--   Beginning of a random paragraph from a random GameEvent    -->
+  {% if rand_gameevent %}
+  <section>
+    <div class="container px-3 pb-3 mb-4">
+      <div class="row">
+        <a href="{% url 'chronicles:chronicle-game' rand_gameevent.game.id %}#event_{{ rand_gameevent.id }}">
+          <p class="font-18 font-italic px-2 pb-0 mt-3 mb-0 text-justify content-section border-none fading-top-bottom
+              {% if request.current_profile not in event.participants.all and request.current_profile.status != 'gm' %} text-muted {% endif %}"
+            data-toggle="tooltip" data-placement="bottom" data-html="true"
+            title='<span class="font-italic">Pokaż Kronikę wydarzenia</span>'>
+            {{ rand_gameevent.caption }}
+          </p>
+        </a>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!--   Random pictures from Prosoponomikon    -->
+  <section>
+    <div class="container px-2 pb-3 mb-4">
+      <div class="row">
+        {% for acquaintanceship in rand_acquaintanceships %}
+          {% with show_caption=False %}
+            {% include 'prosoponomikon/_acquaintance_img.html' %}
+          {% endwith %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!--   Random pictures from Toponomikon    -->
+  <section>
+    <div class="container px-2 pb-3 mb-4">
+      <div class="row">
+        {% for location in rand_locations %}
+        <div class="col-sm-12 col-lg-6 px-2">
+          {% with show_caption=False %}
+            {% include 'toponomikon/_loc_img.html' %}
+          {% endwith %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!--   Random pictures from Therarion    -->
+  <section>
+    <div class="container px-2">
+      <div class="row">
+
+      </div>
+    </div>
+  </section>
+
+</article>
 
 {% endblock content %}

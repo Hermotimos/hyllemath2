@@ -1,89 +1,90 @@
 <!DOCTYPE html>
 {% load static %}
 
-<html lang="pl" >
-    <head>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<html lang="pl">
 
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-              integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
-              crossorigin="anonymous">
-        <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.15.3/dist/bootstrap-table.min.css">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <!-- Own CSS etc. -->
-        <link rel="stylesheet" href="{% static 'css/main.css' %}">
-        <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.15.3/dist/bootstrap-table.min.css">
 
-        <!-- Fonts & Icons -->
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IM+Fell+Great+Primer&display=swap">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-        <link rel="stylesheet" href="{% static 'css/fontello.css' %}">
-        <link rel="stylesheet" href="https://nagoshiashumari.github.io/Rpg-Awesome/stylesheets/rpg-awesome.min.css">
+    <!-- Own CSS etc. -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
 
-        <title>
-            {% firstof page_title 'Hyllemath' %}
-        </title>
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IM+Fell+Great+Primer&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="{% static 'css/fontello.css' %}">
+    <link rel="stylesheet" href="https://nagoshiashumari.github.io/Rpg-Awesome/stylesheets/rpg-awesome.min.css">
 
-        {% block head_extra %}
-        {% endblock head_extra %}
-    </head>
+    <title>
+      {% firstof page_title 'Hyllemath' %}
+    </title>
+
+    {% block head_extra %}
+    {% endblock head_extra %}
+  </head>
 
 
-    <body>
-        <!--  NAVBAR  -->
+  <body>
+    <!--  NAVBAR  -->
+    {% if user.is_authenticated %}
+    <header class="site-header">
+      {% include 'navbar.html' %}
+    </header>
+    {% endif %}
+
+    <main class="container px-sm-2 pt-2">
+      <div class="row">
+        <div class="col-md-9 pl-2 pr-3 px-sm-2">
+
+          <header>
+            <div class="d-flex text-break border-bottom-dark">
+              <img class="header-img" src="{% static 'img/skadia.png' %}">
+              <p class="small-caps font-weight-bold page-title my-1 mt-auto pl-2 pr-4">
+                {{ page_title }}
+              </p>
+            </div>
+          </header>
+
+          {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mb-0">
+              {{ message }}
+            </div>
+            {% endfor %}
+          {% endif %}
+
+          {% block content %}
+          {% endblock content %}
+        </div>
+
         {% if user.is_authenticated %}
-            <header class="site-header">
-                {% include 'navbar.html' %}
-            </header>
+        <div class="col-md-3 pl-sm-5">
+          {% include 'sidebar.html' %}
+        </div>
         {% endif %}
 
-        <main class="container px-sm-2 pt-2">
-            <div class="row">
-                <div class="col-md-9 pl-2 pr-3 px-sm-2">
+        <!--   SCROLL-UP BUTTON   -->
+        <a id="upp" class="scrollup col-md-0">
+        </a>
 
-                    <header>
-                        <div class="d-flex text-break border-bottom-dark">
-                            <img class="header-img" src="{% static 'img/skadia.png' %}">
-                            <p class="small-caps font-weight-bold page-title my-1 mt-auto pl-2 pr-4">
-                                {{ page_title }}
-                            </p>
-                        </div>
-                    </header>
-
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} mb-0">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-
-                    {% block content %}
-                    {% endblock content %}
-                </div>
-
-                {% if user.is_authenticated %}
-                    <div class="col-md-3 pl-sm-5">
-                        {% include 'sidebar.html' %}
-                    </div>
-                {% endif %}
-
-                <!--   SCROLL-UP BUTTON   -->
-                <a id="upp" class="scrollup col-md-0">
-                </a>
-
-            </div>
+      </div>
 
 
-        </main>
+    </main>
 
 
 
 
-        {% block javascript %}
-        {% endblock javascript %}
-    </body>
+    {% block javascript %}
+    {% endblock javascript %}
+  </body>
+
 </html>
