@@ -12,6 +12,23 @@ class User(AbstractUser):
     is_spectator = models.BooleanField(default=False)   # Designates whether the user can view site content but without editing it
 
     @property
+    def is_gamemaster(self):
+        return self.is_staff and self.is_superuser
+
+    @property
+    def is_auxiliary(self):
+        """Potentially for game masters that don't have full admin permissions?"""
+        return self.is_staff and not self.is_superuser
+
+    @property
+    def is_player(self):
+        return not self.is_staff and not self.is_superuser and not self.is_spectator
+
+    @property
+    def is_active_player(self):
+        return self.is_player and self.is_active
+
+    @property
     def can_action(self):
         return self.is_active and not self.is_spectator
 

@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class PrspConfig(AppConfig):
+class CharactersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'prsp'
+    name = 'characters'

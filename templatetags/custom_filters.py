@@ -39,7 +39,7 @@ def max_synergy_level_no(synergy_levels):
     def max_skill_level_no(skill_levels):
         return max(
             [skill_lvl.level for skill_lvl in skill_levels])
-    
+
     return max(
         [max_skill_level_no(synergy_lvl.skill_levels.all())
          for synergy_lvl in synergy_levels]
@@ -60,8 +60,8 @@ def get_main_audio_path(obj):
             return get_main_audio_path(obj.in_location)
     except AttributeError:
         return None
-    
-    
+
+
 @register.filter
 def get_audio_set(obj):
     try:
@@ -116,7 +116,7 @@ def pictureset_pictures_in_custom_order(picture_set):
     pics = [pic for pic in picture_set.pictures.all()]
     try:
         pics_sorted = sorted(pics, key=lambda pic: get_dimensions_ratio(pic.image.image))
-        
+
         # sort pictures according to custom cases considering WIDTH:HEIGHT ratio:
         if len(pics) == 2:
             # Put the wider pic on the left / but keep order if width is equal
@@ -308,4 +308,3 @@ def similar_weapon_types(acquisitions_qs, synergy_lvl):
         res += f"<b>{wt.name}:</b> {comparables}\n<br>"
     return mark_safe(res)
 
-    
