@@ -105,9 +105,10 @@ INSTALLED_APPS = [
     "debug_toolbar",
     # "django_filters",
 
-    # own
+    # own - in the order of adding
     "users",
-    "prsp",
+    "resources",
+    "characters",
 ]
 
 MIDDLEWARE = [
