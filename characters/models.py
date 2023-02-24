@@ -1,19 +1,19 @@
 from django.db.models import (
     CASCADE, PROTECT, SET_NULL, TextChoices, Model,
-    AutoField, CharField, ForeignKey, Index, DateTimeField,
-    IntegerField, TextField, BooleanField, ManyToManyField
+    AutoField, CharField, ForeignKey as FK, Index, DateTimeField,
+    IntegerField, TextField, BooleanField, ManyToManyField as M2M
 )
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from resources.models import Tag, Picture
-
+from resources.models import Picture
+from myproject.utils_models import Tag
 
 # TODO: check if Django uses indexes on "id" fields even if they aren"t mentioned in Meta - speed tests
 # TODO: add ordering
 # TODO: add absolute_url when applicable
 
 
-#  -------------------------------------------------------------------------------
+#  ------------------------------------------------------------
 
 
 class FirstNameGroup(Model):
@@ -30,6 +30,7 @@ class FirstNameGroup(Model):
         return self.title
 
 
+
 class FirstName(Model):
 
     class Gender(TextChoices):
@@ -39,15 +40,19 @@ class FirstName(Model):
         NONE = "NONE", "None"
 
     id = AutoField(primary_key=True)
-    firstnamegroup = ForeignKey(FirstNameGroup, related_name='firstnames', on_delete=PROTECT)
-    origin = ForeignKey("self", related_name='originatedfirstnames', null=True, blank=True, on_delete=PROTECT)
     gender = CharField(max_length=6, choices=Gender.choices, default=Gender.MALE)
+    firstnamegroup = FK(
+        FirstNameGroup, db_column="firstnamegroupid",
+        related_name='firstnames',
+        on_delete=PROTECT)
+    origin = FK(
+        "self", db_column="originid",
+        related_name='originatedfirstnames',
+        null=True, blank=True, on_delete=PROTECT)
     nominative = CharField(max_length=50, unique=True)
     genitive = CharField(max_length=50, blank=True, null=True)
     description = TextField(max_length=10000)
-    _tags = ManyToManyField(Tag, through="FirstNameToTagLink", blank=True)
-
-    # TODO: M2M Field tags = M2MField(FirstNameTag, ...) to reflect links instead of separate table - this should work
+    tags = M2M("FirstNameTag", through="FirstNameM2MFirstNameTag", blank=True)
 
     class Meta:
         managed = False
@@ -62,17 +67,31 @@ class FirstName(Model):
         return self.nominative
 
 
-class FirstNameToTagLink(Model):
-    id = AutoField(primary_key=True)
-    firstname = ForeignKey(FirstName, on_delete=CASCADE)
-    tag = ForeignKey(Tag, on_delete=CASCADE)
+class FirstNameTag(Tag):
+    author = FK(
+        "users.User", db_column="authorid", related_name='firstnametags',
+        null=True, blank=True, on_delete=CASCADE)
 
     class Meta:
         managed = False
-        db_table = '"cha"."firstnametotaglink"'
+        db_table = '"res"."firstnametag"'
+        indexes = [
+            Index(fields=["author"])
+        ]
+        ordering = ['title']
 
 
-#  -------------------------------------------------------------------------------
+class FirstNameM2MFirstNameTag(Model):
+    id = AutoField(primary_key=True)
+    firstname = FK(FirstName, db_column="firstnameid", on_delete=CASCADE)
+    firstnametag = FK(FirstNameTag, db_column="firstnametagid", on_delete=CASCADE)
+
+    class Meta:
+        managed = False
+        db_table = '"cha"."firstnamem2mfirstnametag"'
+
+
+# #  ------------------------------------------------------------
 
 
 class FamilyNameGroup(Model):
@@ -91,14 +110,24 @@ class FamilyNameGroup(Model):
 
 class FamilyName(Model):
     id = AutoField(primary_key=True)
-    familynamegroup = ForeignKey(FamilyNameGroup, related_name='familynames', on_delete=PROTECT)
-    origin = ForeignKey("self", related_name='originatedfamilynames', null=True, blank=True, on_delete=SET_NULL)
+    familynamegroup = FK(
+        FamilyNameGroup,
+        db_column="familynamegroupid",
+        related_name='familynames', on_delete=PROTECT)
+    origin = FK(
+        "self", db_column="originid",
+        related_name='originatedfamilynames',
+        null=True, blank=True,
+        on_delete=SET_NULL)
     nominative = CharField(max_length=50, unique=True)
     nominative_pl = CharField(max_length=50, blank=True)
     genitive = CharField(max_length=50, blank=True, null=True)
     genitive_pl = CharField(max_length=50, blank=True, null=True)
     description = TextField(max_length=10000)
-    _tags = ManyToManyField(Tag, through="FamilyNameToTagLink", blank=True)
+    tags = M2M(
+        "FamilyNameTag", through="FamilyNameM2MFamilyNameTag",
+        related_name='familynames',
+        blank=True)
 
     class Meta:
         managed = False
@@ -113,22 +142,39 @@ class FamilyName(Model):
         return self.nominative
 
 
-class FamilyNameToTagLink(Model):
-    id = AutoField(primary_key=True)
-    familyname = ForeignKey(FamilyName, on_delete=CASCADE)
-    tag = ForeignKey(Tag, on_delete=CASCADE)
+
+
+class FamilyNameTag(Tag):
+    author = FK(
+        "users.User", db_column="authorid", related_name='familynametags',
+        null=True, blank=True, on_delete=CASCADE)
 
     class Meta:
         managed = False
-        db_table = '"cha"."familynametotaglink"'
+        db_table = '"cha"."familynametag"'
+        indexes = [
+            Index(fields=["author"])
+        ]
+        ordering = ['title']
 
 
-#  -------------------------------------------------------------------------------
+
+class FamilyNameM2MFamilyNameTag(Model):
+    id = AutoField(primary_key=True)
+    familyname = FK(FamilyName, db_column="familynameid", on_delete=CASCADE)
+    familynametag = FK(FamilyNameTag, db_column="familynametagid", on_delete=CASCADE)
+
+    class Meta:
+        managed = False
+        db_table = '"cha"."familynamem2mfamilynametag"'
+
+
+# # #  ------------------------------------------------------------
 
 
 class Character(Model):
     id = AutoField(primary_key=True)
-    user = ForeignKey("users.User", related_name='characters', on_delete=CASCADE)
+    user = FK("users.User", related_name='characters', on_delete=CASCADE)
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -150,14 +196,14 @@ class CharacterVersion(Model):
         PARTIAL = "PARTIAL", "Partial"
 
     id = AutoField(primary_key=True)
-    characterid = ForeignKey(Character, related_name='characterversions', on_delete=PROTECT)
+    characterid = FK(Character, related_name='characterversions', on_delete=PROTECT)
     versionkind = CharField(max_length=10, choices=CharacterVersionKind.choices, default=CharacterVersionKind.MAIN)
-    picture = ForeignKey(Picture, related_name='characterversions', on_delete=PROTECT)
+    picture = FK(Picture, related_name='characterversions', on_delete=PROTECT)
     isalive = BooleanField(default=True)
     isalterego = BooleanField(default=False)
 
-    firstnameid = ForeignKey(FirstName, on_delete=PROTECT)
-    familynameid = ForeignKey(FamilyName, on_delete=PROTECT)
+    firstnameid = FK(FirstName, on_delete=PROTECT)
+    familynameid = FK(FamilyName, on_delete=PROTECT)
     nickname = CharField(max_length=50, null=True)
     originname = CharField(max_length=50, null=True)
     fullname = CharField(max_length=100, db_column="fullname", editable=False)
@@ -170,6 +216,9 @@ class CharacterVersion(Model):
     experience = IntegerField(null=True, validators=[MinValueValidator(1), MaxValueValidator(20)])
 
     _createdat = DateTimeField(auto_now_add=True)
+    tags = M2M(
+        "CharacterVersionTag", through="CharacterVersionM2MCharacterVersionTag",
+        related_name='familynames', blank=True)
 
     class Meta:
         managed = False
@@ -181,12 +230,28 @@ class CharacterVersion(Model):
 
 
 
-class CharacterVersionToTagLink(Model):
-    id = AutoField(primary_key=True)
-    character = ForeignKey(Character, on_delete=CASCADE)
-    tag = ForeignKey(Tag, on_delete=CASCADE)
+class CharacterVersionTag(Tag):
+    author = FK(
+        "users.User", db_column="authorid", related_name='characterversiontags',
+        null=True, blank=True, on_delete=CASCADE)
 
     class Meta:
         managed = False
-        db_table = '"cha"."characterversiontotaglink"'
+        db_table = '"cha"."charactertag"'
+        indexes = [
+            Index(fields=["author"])
+        ]
+        ordering = ['title']
 
+
+class CharacterVersionM2MCharacterVersionTag(Model):
+    id = AutoField(primary_key=True)
+    characterversion = FK(CharacterVersion, on_delete=CASCADE)
+    characterversiontag = FK(CharacterVersionTag, on_delete=CASCADE)
+
+    class Meta:
+        managed = False
+        db_table = '"cha"."characterversionm2mcharacterversiontag"'
+
+
+# # #  ------------------------------------------------------------
