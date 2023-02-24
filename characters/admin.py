@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.forms import ModelForm, ModelMultipleChoiceField, BaseModelForm, TextInput
 
 from characters.models import (
@@ -7,7 +6,6 @@ from characters.models import (
     FamilyName, FamilyNameGroup, FamilyNameTag,
     Character, CharacterVersion, CharacterVersionTag)
 
-from myproject.utils_admin import label_for_m2m_field, GreenAddButtonMixin
 from myproject.utils_models import Tag
 
 
@@ -22,9 +20,9 @@ class TagAdminForm(ModelForm):
 
 @admin.register(FirstNameTag, FamilyNameTag, CharacterVersionTag)
 class TagAdmin(admin.ModelAdmin):
-    fields = ['author', 'title', 'color']
+    fields = ['user', 'title', 'color']
     form = TagAdminForm
-    list_display = ['id', 'author', 'title', 'color']
+    list_display = ['id', 'user', 'title', 'color']
     list_editable = fields
 
 
@@ -52,6 +50,7 @@ class FirstNameGroupAdmin(admin.ModelAdmin):
 
 @admin.register(FirstName)
 class FirstNameAdmin(admin.ModelAdmin):
+    filter_horizontal = ['tags']
     # form = FirstNameAdminForm
     list_display = [
         'id', 'gender', 'origin', 'nominative', 'genitive', 'description',
@@ -85,6 +84,7 @@ class FamilyNameGroupAdmin(admin.ModelAdmin):
 
 @admin.register(FamilyName)
 class FamilyNameAdmin(admin.ModelAdmin):
+    filter_horizontal = ['tags']
     # form = FamilyNameAdminForm
     list_display = [
         'id', 'origin', 'nominative', 'nominative_pl', 'genitive',
@@ -115,11 +115,11 @@ class FamilyNameAdmin(admin.ModelAdmin):
 
 @admin.register(Character)
 class CharacterAdmin(admin.ModelAdmin):
-    fields = ['id', 'user', 'fullname', '_createdat']
+    fields = ['id', 'user', '_createdat']
     # form = TagAdminForm
     list_display = fields
     list_editable = ['user']
-    readonly_fields = ['id', '_createdat', 'fullname']
+    readonly_fields = ['id', '_createdat']
 
 
 
@@ -142,8 +142,9 @@ class CharacterVersionAdmin(admin.ModelAdmin):
         'character', 'versionkind', 'picture', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname', 'fullname',
         'description',
-        'strength', 'dexterity', 'endurance', 'power', 'experience',
+        'strength', 'dexterity', 'endurance', 'power', 'experience', 'tags',
     ]
+    filter_horizontal = ['tags']
     # form = CharacterVersionAdminForm
     list_display = [
         'id', 'character', 'versionkind', 'picture', 'isalive', 'isalterego',

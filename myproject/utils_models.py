@@ -1,5 +1,5 @@
 
-from django.db.models import Model, AutoField, CharField
+from django.db.models import Model, CharField
 
 
 class Tag(Model):

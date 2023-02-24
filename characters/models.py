@@ -1,15 +1,14 @@
 from django.db.models import (
     CASCADE, PROTECT, SET_NULL, TextChoices, Model,
-    AutoField, CharField, ForeignKey as FK, Index, DateTimeField,
+    CharField, ForeignKey as FK, DateTimeField,
     IntegerField, TextField, BooleanField, ManyToManyField as M2M
 )
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from resources.models import Picture
 from myproject.utils_models import Tag
+from users.models import User
 
-
-# TODO: check if Django uses indexes on "id" fields even if they aren't mentioned in Meta - speed tests
 # TODO: add absolute_url when applicable
 
 
@@ -17,14 +16,9 @@ from myproject.utils_models import Tag
 
 
 class FirstNameTag(Tag):
-    author = FK(
-        "users.User", related_name='firstnametags',
-        null=True, blank=True, on_delete=CASCADE)
+    user = FK(User, related_name='firstnametags', null=True, blank=True, on_delete=CASCADE)
 
     class Meta:
-        indexes = [
-            Index(fields=["author"])
-        ]
         ordering = ['title']
 
 
@@ -43,10 +37,10 @@ class FirstNameGroup(Model):
 class FirstName(Model):
 
     class Gender(TextChoices):
-        MALE = "MALE", "Male"
-        FEMALE = "FEMALE", "Female"
-        UNISEX = "UNISEX", "Unisex"
-        NONE = "NONE", "None"
+        MALE = "MALE", "MALE"
+        FEMALE = "FEMALE", "FEMALE"
+        UNISEX = "UNISEX", "UNISEX"
+        NONE = "NONE", "NONE"
 
     gender = CharField(max_length=6, choices=Gender.choices, default=Gender.MALE)
     firstnamegroup = FK(FirstNameGroup, related_name='firstnames', on_delete=PROTECT)
@@ -59,10 +53,6 @@ class FirstName(Model):
     tags = M2M(FirstNameTag, blank=True)
 
     class Meta:
-        indexes = [
-            Index(fields=["firstnamegroup"]),
-            Index(fields=["origin"]),
-        ]
         ordering = ["nominative"]
 
     def __str__(self):
@@ -73,14 +63,9 @@ class FirstName(Model):
 
 
 class FamilyNameTag(Tag):
-    author = FK(
-        "users.User", related_name='familynametags',
-        null=True, blank=True, on_delete=CASCADE)
+    user = FK(User, related_name='familynametags', null=True, blank=True, on_delete=CASCADE)
 
     class Meta:
-        indexes = [
-            Index(fields=["author"])
-        ]
         ordering = ['title']
 
 
@@ -108,10 +93,6 @@ class FamilyName(Model):
     tags = M2M(FamilyNameTag,  related_name='familynames', blank=True)
 
     class Meta:
-        indexes = [
-            Index(fields=["familynamegroup"]),
-            Index(fields=["origin"]),
-        ]
         ordering = ["nominative"]
 
     def __str__(self):
@@ -123,41 +104,42 @@ class FamilyName(Model):
 
 class Character(Model):
     user = FK("users.User", related_name='characters', on_delete=CASCADE)
-    fullname = CharField(max_length=100, null=True, blank=True)
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["user"]
 
     def __str__(self):
-        return self.fullname
-
-
-    # def __str__(self):
-    #     greatest_v = CharacterVersion.objects.filter(character__id=self.id).order_by("versionkind").first()
-    #     return f"[{self.user.username}] - {greatest_v.fullname} ({greatest_v.versionkind})"
+        try:
+            # Get Character's version with greatest CharacterVersionKind,
+            # the order being "1. DEAD" > "2. MAIN" > "3. PAST" >  "4. PARTIAL"
+            fullname, versionkind = CharacterVersion.objects.filter(
+                character__id=self.id
+            ).order_by(
+                "versionkind"
+            ).values_list(
+                'fullname', 'versionkind'
+            ).first()
+            return f"{fullname} [{self.user.username}: {versionkind}]"
+        except:
+            return "No CharacterVersion"
 
 
 
 class CharacterVersionTag(Tag):
-    author = FK(
-        "users.User", related_name='characterversiontags',
-        null=True, blank=True, on_delete=CASCADE)
+    user = FK(User, related_name='characterversiontags', null=True, blank=True, on_delete=CASCADE)
 
     class Meta:
-        indexes = [
-            Index(fields=["author"])
-        ]
         ordering = ['title']
 
 
 class CharacterVersion(Model):
 
     class CharacterVersionKind(TextChoices):
-        DEAD = "DEAD", "Dead"
-        MAIN = "MAIN", "Main"
-        PAST = "PAST", "Past"
-        PARTIAL = "PARTIAL", "Partial"
+        DEAD = "1. DEAD", "DEAD"
+        MAIN = "2. MAIN", "MAIN"
+        PAST = "3. PAST", "PAST"
+        PARTIAL = "4. PARTIAL", "PARTIAL"
 
     character = FK(Character, related_name='characterversions', on_delete=PROTECT)
     versionkind = CharField(max_length=10, choices=CharacterVersionKind.choices, default=CharacterVersionKind.MAIN)
@@ -178,8 +160,8 @@ class CharacterVersion(Model):
     power = IntegerField(null=True, validators=[MinValueValidator(1), MaxValueValidator(20)])
     experience = IntegerField(null=True, validators=[MinValueValidator(1), MaxValueValidator(20)])
 
-    _createdat = DateTimeField(auto_now_add=True)
     tags = M2M(CharacterVersionTag, related_name='characterversions', blank=True)
+    _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["fullname"]
@@ -188,15 +170,14 @@ class CharacterVersion(Model):
         return self.fullname
 
     def save(self, *args, **kwargs):
-        firstname = getattr(self.firstname, 'nominative', "")
-        familyname = getattr(self.familyname, 'nominative', "")
-        nickname = self.nickname or ""
-        originname = self.originname or ""
-
-        self.fullname = f"{firstname} {familyname} {nickname} {originname}".replace('  ', ' ').strip()
-        self.character.fullname = self.fullname
-        self.character.save()
-
+        firstname, familyname, nickname, originname = (
+            getattr(self.firstname, 'nominative', ""),
+            getattr(self.familyname, 'nominative', ""),
+            self.nickname or "",
+            self.originname or "",
+        )
+        fullname = f"{firstname} {familyname} {nickname} {originname}"
+        self.fullname = fullname.replace('  ', ' ').strip()
         super().save(*args, **kwargs)
 
 
