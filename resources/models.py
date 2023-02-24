@@ -23,8 +23,6 @@ class Picture(Model):
     image = ImageField(upload_to=image_upload_path, blank=True)
 
     class Meta:
-        db_table = '"res"."picture"'
-        managed = False
         ordering = ["title"]
 
     def __str__(self) -> str:

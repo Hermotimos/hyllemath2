@@ -11,6 +11,10 @@ class User(AbstractUser):
     bio = TextField(max_length=1000, blank=True, null=True)
     is_spectator = models.BooleanField(default=False)   # Designates whether the user can view site content but without editing it
 
+    class Meta:
+        # Order users with effective "player" role as first
+        ordering = ["username"]
+
     @property
     def is_gamemaster(self):
         return self.is_staff and self.is_superuser
