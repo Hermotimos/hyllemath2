@@ -1,6 +1,7 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
-    CASCADE, PROTECT, SET_NULL, TextChoices, Model,
-    CharField, ForeignKey as FK, DateTimeField,
+    CASCADE, PROTECT, SET_NULL, TextChoices, Model, Manager,
+    CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField,
     IntegerField, TextField, BooleanField, ManyToManyField as M2M
 )
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -113,6 +114,9 @@ class FamilyName(Model):
 
 class Character(Model):
     user = FK("users.User", related_name='characters', on_delete=CASCADE)
+    relationships = M2M(
+        'CharacterVersion', through='Relationship',
+        related_name='known_by_characters', blank=True)
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -129,9 +133,10 @@ class Character(Model):
             ).values_list(
                 'fullname', 'versionkind'
             ).first()
-            return f"{fullname} [{self.user.username}: {versionkind}]"
+            return f"{self.user.username}: {fullname} ({versionkind})"
         except:
-            return "No CharacterVersion"
+            return f"{self.user.username}: No CharacterVersion"
+
 
 
 class CharacterVersion(Model):
@@ -182,4 +187,19 @@ class CharacterVersion(Model):
         super().save(*args, **kwargs)
 
 
+class Relationship(Model):
+    character = FK(Character, on_delete=PROTECT)
+    characterversion = FK(CharacterVersion, on_delete=PROTECT)
+    isdirect = BooleanField(default=False)
+    identifiedwith = ArrayField(PositiveIntegerField(), blank=True, null=True)
+
+    class Meta:
+        unique_together = ['character', 'characterversion']
+
+    def __str__(self):
+        return f"{self.character} -> ({self.characterversion.versionkind}) -> {self.characterversion}"
+
+
 #  ------------------------------------------------------------
+
+

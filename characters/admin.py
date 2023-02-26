@@ -4,10 +4,12 @@ from django.forms import ModelForm, ModelMultipleChoiceField, BaseModelForm, Tex
 from characters.models import (
     FirstName, FirstNameGroup, FirstNameTag,
     FamilyName, FamilyNameGroup, FamilyNameTag,
-    Character, CharacterVersion, CharacterVersionTag)
+    Character, CharacterVersion, CharacterVersionTag,
+    # CharacterRelationship,
+)
 
 from myproject.utils_models import Tag
-
+from myproject.utils_admin import formfield_with_cache
 
 
 class TagAdminForm(ModelForm):
@@ -35,23 +37,9 @@ class FirstNameGroupAdmin(admin.ModelAdmin):
     list_editable = ['title', 'description']
 
 
-# class FirstNameAdminForm(GreenAddButtonMixin, ModelForm):
-#     tags = ModelMultipleChoiceField(
-#         queryset=FirstNameTag.objects.all(),
-#         required=False,
-#         widget=FilteredSelectMultiple(verbose_name='Tags', is_stacked=False),
-#         label=label_for_m2m_field('Tags'),
-#     )
-
-#     class Meta:
-#         model = FirstName
-#         fields = '__all__'
-
-
 @admin.register(FirstName)
 class FirstNameAdmin(admin.ModelAdmin):
     filter_horizontal = ['tags']
-    # form = FirstNameAdminForm
     list_display = [
         'id', 'gender', 'origin', 'nominative', 'genitive', 'description',
     ]
@@ -69,23 +57,9 @@ class FamilyNameGroupAdmin(admin.ModelAdmin):
     list_editable = ['title', 'description']
 
 
-# class FamilyNameAdminForm(GreenAddButtonMixin, ModelForm):
-#     tags = ModelMultipleChoiceField(
-#         queryset=FamilyNameTag.objects.all(),
-#         required=False,
-#         widget=FilteredSelectMultiple(verbose_name='Tags', is_stacked=False),
-#         label=label_for_m2m_field('Tags'),
-#     )
-
-#     class Meta:
-#         model = FamilyName
-#         fields = '__all__'
-
-
 @admin.register(FamilyName)
 class FamilyNameAdmin(admin.ModelAdmin):
     filter_horizontal = ['tags']
-    # form = FamilyNameAdminForm
     list_display = [
         'id', 'origin', 'nominative', 'nominative_pl', 'genitive',
         'genitive_pl', 'description',
@@ -100,40 +74,69 @@ class FamilyNameAdmin(admin.ModelAdmin):
 #  ------------------------------------------------------------
 
 
-# class CharacterAdminForm(GreenAddButtonMixin, ModelForm):
-#     tags = ModelMultipleChoiceField(
-#         queryset=FirstNameTag.objects.all(),
-#         required=False,
-#         widget=FilteredSelectMultiple(verbose_name='Tags', is_stacked=False),
-#         label=label_for_m2m_field('Tags'),
-#     )
+class CharacterRelationshipInline(admin.TabularInline):
+    """
+    An inline for handling Relationships from Charcter's perspective.
+    That is - which CharacterVersions this Character knows.
+    This is different from CharacterVersionRelationshipInline, which is for
+    handling Characters who know this CharacterVersion.
+    """
+    model = Character.relationships.through
+    fk_name = 'character'
 
-#     class Meta:
-#         model = Character
-#         fields = '__all__'
+    # TODO: optimize inline: 1. migrate data, 2. optimize with real db records
+
+    # def get_queryset(self, request):
+    #     qs = super().get_queryset(request)
+    #     print(qs)
+    #     return qs.prefetch_related('character__characterversions').select_related('character__user', 'characterversion')
+
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
+    #     for field in [
+    #         'character',
+    #         'characterversion',
+    #     ]:
+    #         if db_field.name == field:
+    #             formfield = formfield_with_cache(field, formfield, request)
+    #     return formfield
 
 
 @admin.register(Character)
 class CharacterAdmin(admin.ModelAdmin):
     fields = ['id', 'user', '_createdat']
-    # form = TagAdminForm
+    inlines = [CharacterRelationshipInline]
     list_display = fields
     list_editable = ['user']
     readonly_fields = ['id', '_createdat']
 
 
+class CharacterVersionRelationshipInline(admin.TabularInline):
+    """
+    An inline for handling Relationships from CharacterVersion's perspective.
+    That is - which Characters know this CharacterVersion.
+    This is different from CharacterRelationshipInline, which is for
+    handling CharacterVersions known by this Character .
+    """
+    model = CharacterVersion.known_by_characters.through
+    fk_name = 'characterversion'
 
-# class CharacterVersionAdminForm(GreenAddButtonMixin, ModelForm):
-#     tags = ModelMultipleChoiceField(
-#         queryset=CharacterVersionTag.objects.all(),
-#         required=False,
-#         widget=FilteredSelectMultiple(verbose_name='Tags', is_stacked=False),
-#         label=label_for_m2m_field('Tags'),
-#     )
+    # TODO: optimize inline: 1. migrate data, 2. optimize with real db records
 
-#     class Meta:
-#         model = CharacterVersion
-#         fields = '__all__'
+    # def get_queryset(self, request):
+    #     qs = super().get_queryset(request)
+    #     print(qs)
+    #     return qs.prefetch_related('character__characterversions').select_related('character__user', 'characterversion')
+
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
+    #     for field in [
+    #         'character',
+    #         'characterversion',
+    #     ]:
+    #         if db_field.name == field:
+    #             formfield = formfield_with_cache(field, formfield, request)
+    #     return formfield
 
 
 @admin.register(CharacterVersion)
@@ -145,7 +148,7 @@ class CharacterVersionAdmin(admin.ModelAdmin):
         'strength', 'dexterity', 'endurance', 'power', 'experience', 'tags',
     ]
     filter_horizontal = ['tags']
-    # form = CharacterVersionAdminForm
+    inlines = [CharacterVersionRelationshipInline]
     list_display = [
         'id', 'character', 'versionkind', 'picture', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname', 'fullname',
