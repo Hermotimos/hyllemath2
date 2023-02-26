@@ -14,12 +14,29 @@ from users.models import User
 
 #  ------------------------------------------------------------
 
+# Tags
+
 
 class FirstNameTag(Tag):
-    user = FK(User, related_name='firstnametags', null=True, blank=True, on_delete=CASCADE)
+    user = FK(
+        User, related_name='firstnametags',
+        null=True, blank=True, on_delete=CASCADE)
 
-    class Meta:
-        ordering = ['title']
+
+class FamilyNameTag(Tag):
+    user = FK(
+        User, related_name='familynametags',
+        null=True, blank=True, on_delete=CASCADE)
+
+
+
+class CharacterVersionTag(Tag):
+    user = FK(
+        User, related_name='characterversiontags',
+        null=True, blank=True, on_delete=CASCADE)
+
+
+#  ------------------------------------------------------------
 
 
 class FirstNameGroup(Model):
@@ -31,7 +48,6 @@ class FirstNameGroup(Model):
 
     def __str__(self):
         return self.title
-
 
 
 class FirstName(Model):
@@ -60,13 +76,6 @@ class FirstName(Model):
 
 
 #  ------------------------------------------------------------
-
-
-class FamilyNameTag(Tag):
-    user = FK(User, related_name='familynametags', null=True, blank=True, on_delete=CASCADE)
-
-    class Meta:
-        ordering = ['title']
 
 
 class FamilyNameGroup(Model):
@@ -123,14 +132,6 @@ class Character(Model):
             return f"{fullname} [{self.user.username}: {versionkind}]"
         except:
             return "No CharacterVersion"
-
-
-
-class CharacterVersionTag(Tag):
-    user = FK(User, related_name='characterversiontags', null=True, blank=True, on_delete=CASCADE)
-
-    class Meta:
-        ordering = ['title']
 
 
 class CharacterVersion(Model):
