@@ -1,36 +1,40 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models import CharField, ImageField, TextField
-from django.utils.translation import gettext_lazy as _
+from django.db.models import CharField, OneToOneField, PROTECT, Func
+
+from resources.models import Picture
 
 
 class User(AbstractUser):
-    image = ImageField(_("image"), upload_to='users', blank=True, null=True)
+    picture = OneToOneField(Picture, on_delete=PROTECT, blank=True, null=True)
     collation = CharField(max_length=30, blank=True, null=True)
-    bio = TextField(max_length=1000, blank=True, null=True)
-    is_spectator = models.BooleanField(default=False)   # Designates whether the user can view site content but without editing it
+    is_spectator = models.BooleanField(default=False)   # Indicates if user can view site content but without editing it
 
     class Meta:
-        # Order users with effective "player" role as first
-        ordering = ["username"]
+        ordering = [
+            Func(
+                'username',
+                function='pl-PL-x-icu',
+                template='(%(expressions)s) COLLATE "%(function)s"')
+        ]
 
     @property
     def is_gamemaster(self):
-        return self.is_staff and self.is_superuser
+        return all(self.is_staff, self.is_superuser)
 
     @property
     def is_auxiliary(self):
-        """Potentially for game masters that don't have full admin permissions?"""
+        """Potentially for game masters missing full admin permissions?"""
         return self.is_staff and not self.is_superuser
 
     @property
     def is_player(self):
-        return not self.is_staff and not self.is_superuser and not self.is_spectator
+        return not any(self.is_staff, self.is_superuser, self.is_spectator)
 
     @property
     def is_active_player(self):
-        return self.is_player and self.is_active
+        return all(self.is_player, self.is_active)
 
     @property
     def can_action(self):
@@ -38,14 +42,14 @@ class User(AbstractUser):
 
     @property
     def can_view_all(self):
-        return self.is_superuser or self.is_staff or self.is_spectator
+        return any(self.is_superuser, self.is_staff, self.is_spectator)
 
     @property
-    def user_img_url(self):
+    def picture_url(self):
         try:
-            return self.image.url
+            return self.picture.image.url
         except ValueError:
-            return f"{settings.STATIC_URL}imgs/user_default.jpg"
+            return settings.STATIC_URL + "users/default.jpg"
 
 
 #     @property

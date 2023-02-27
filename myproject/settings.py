@@ -105,9 +105,9 @@ INSTALLED_APPS = [
     "debug_toolbar",
     # "django_filters",
 
-    # own - in the order of adding
-    "users",
+    # own - in the order of migrations
     "resources",
+    "users",
     "characters",
 ]
 

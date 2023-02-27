@@ -7,7 +7,7 @@ from django.db.models import (
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from resources.models import Picture
-from myproject.utils_models import Tag
+from myproject.utils_models import Tag, get_gamemaster
 from users.models import User
 
 # TODO: add absolute_url when applicable
@@ -113,7 +113,7 @@ class FamilyName(Model):
 
 
 class Character(Model):
-    user = FK("users.User", related_name='characters', on_delete=CASCADE)
+    user = FK(User, related_name='characters', default=get_gamemaster, on_delete=CASCADE)
     relationships = M2M(
         'CharacterVersion', through='Relationship',
         related_name='known_by_characters', blank=True)

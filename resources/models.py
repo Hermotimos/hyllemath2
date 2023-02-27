@@ -1,5 +1,6 @@
 from django.db.models import (
-    Model, AutoField, CharField, ImageField, TextChoices,
+    Model, AutoField, CharField, ImageField, TextChoices, ForeignKey as FK,
+    PROTECT,
 )
 from resources.utils import image_upload_path
 
@@ -11,10 +12,11 @@ class Picture(Model):
 
     class Category(TextChoices):
         CHARACTERS = "characters", "characters"
-        LOCATIONS = "locations", "locations"
-        ITEMS = "items", "items"
         CREATURES = "creatures", "creatures"
+        ITEMS = "items", "items"
+        LOCATIONS = "locations", "locations"
         SYMBOLS = "symbols", "symbols"
+        USERS = "users", "users"
         VARIA = "varia", "varia"
 
     id = AutoField(primary_key=True)
@@ -28,5 +30,9 @@ class Picture(Model):
     def __str__(self) -> str:
         return self.title
 
+
+class PictureVersion(Model):
+    picture = FK(Picture, related_name='pictureversions', on_delete=PROTECT)
+    caption = CharField(max_length=100)
 
 #  ------------------------------------------------------------

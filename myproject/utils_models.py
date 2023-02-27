@@ -1,5 +1,6 @@
 
 from django.db.models import Model, CharField, F
+from users.models import User
 
 
 class Tag(Model):
@@ -16,3 +17,8 @@ class Tag(Model):
 
     def __str__(self) -> str:
         return self.title
+
+
+def get_gamemaster() -> str:
+    return User.objects.filter(is_superuser=True).first().id
+
