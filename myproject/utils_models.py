@@ -1,5 +1,5 @@
 
-from django.db.models import Model, CharField, F
+from django.db.models import Model, CharField
 from users.models import User
 
 
@@ -9,11 +9,7 @@ class Tag(Model):
 
     class Meta:
         abstract = True
-        # user FK field is added in subclasses
-        ordering = [
-            F('user').asc(nulls_first=True),
-            'title',
-        ]
+        ordering = ['title']
 
     def __str__(self) -> str:
         return self.title

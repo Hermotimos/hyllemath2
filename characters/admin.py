@@ -20,7 +20,15 @@ class TagAdminForm(ModelForm):
         widgets = {'color': TextInput(attrs={'type': 'color'})}
 
 
-@admin.register(FirstNameTag, FamilyNameTag, CharacterVersionTag)
+@admin.register(FirstNameTag, FamilyNameTag)
+class TagGMAdmin(admin.ModelAdmin):
+    fields = ['title', 'color']
+    form = TagAdminForm
+    list_display = ['id', 'title', 'color']
+    list_editable = fields
+
+
+@admin.register(CharacterVersionTag)
 class TagAdmin(admin.ModelAdmin):
     fields = ['user', 'title', 'color']
     form = TagAdminForm
@@ -46,7 +54,7 @@ class FirstNameAdmin(admin.ModelAdmin):
     list_editable = [
         'gender', 'origin', 'nominative', 'genitive', 'description',
     ]
-
+    search_fields = ['nominative', 'description']
 
 #  ------------------------------------------------------------
 

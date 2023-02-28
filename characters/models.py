@@ -1,6 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
-    CASCADE, PROTECT, SET_NULL, TextChoices, Model, Manager,
+    CASCADE, PROTECT, SET_NULL, TextChoices, Model, Manager, F,
     CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField,
     IntegerField, TextField, BooleanField, ManyToManyField as M2M
 )
@@ -19,16 +19,11 @@ from users.models import User
 
 
 class FirstNameTag(Tag):
-    user = FK(
-        User, related_name='firstnametags',
-        null=True, blank=True, on_delete=CASCADE)
+    title = CharField(max_length=50, unique=True)
 
 
 class FamilyNameTag(Tag):
-    user = FK(
-        User, related_name='familynametags',
-        null=True, blank=True, on_delete=CASCADE)
-
+    title = CharField(max_length=50, unique=True)
 
 
 class CharacterVersionTag(Tag):
@@ -36,16 +31,27 @@ class CharacterVersionTag(Tag):
         User, related_name='characterversiontags',
         null=True, blank=True, on_delete=CASCADE)
 
+    class Meta:
+        ordering = [
+            F('user').asc(nulls_first=True),
+            'title',
+        ]
+        unique_together = ['title', 'user']
+
 
 #  ------------------------------------------------------------
 
 
 class FirstNameGroup(Model):
-    title = CharField(max_length=100, unique=True)
+    parentgroup = FK(
+        'self', related_name='locations', on_delete=PROTECT,
+        blank=True, null=True)
+    title = CharField(max_length=100)
     description = TextField(max_length=10000)
 
     class Meta:
         ordering = ["title"]
+        unique_together = [("title", "parentgroup")]
 
     def __str__(self):
         return self.title
