@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.db.models import TextField, CharField, ForeignKey
 from django.forms import ModelForm, Select, Textarea, TextInput
@@ -159,29 +160,35 @@ class CharacterVersionRelationshipInline(admin.TabularInline):
 
 @admin.register(CharacterVersion)
 class CharacterVersionAdmin(CachedFormfieldForFKMixin, admin.ModelAdmin):
-    fields = [
-        'character', 'versionkind', 'picture', 'isalive', 'isalterego',
-        'firstname', 'familyname', 'nickname', 'originname', 'fullname',
-        'description',
-        'strength', 'dexterity', 'endurance', 'power', 'experience', 'tags',
+    fieldsets = [
+        (None, {
+            'fields': (
+                ('character', 'fullname', 'picture'),
+                ('versionkind', 'isalive', 'isalterego',),
+                ('firstname', 'familyname', 'nickname', 'originname',),
+                'description',
+                ('strength', 'dexterity', 'endurance', 'power',),
+                'experience',
+                'tags'
+            )
+        }),
     ]
     filter_horizontal = ['tags']
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
-        CharField: {'widget': TextInput(attrs={'size': 20})},
-        ForeignKey: {'widget': Select(attrs={'style': 'width:180px'})},
+        CharField: {'widget': TextInput(attrs={'size': 15})},
+        ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
     }
 
     # inlines = [CharacterVersionRelationshipInline]
     list_display = [
-        'get_img', 'versionkind', 'picture', 'isalive', 'isalterego',
-        'firstname', 'familyname', 'nickname', 'originname', 'fullname',
+        'get_img', 'fullname', 'versionkind', 'isalive', 'isalterego',
+        'firstname', 'familyname', 'nickname', 'originname',
         'description',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
-        '_createdat',
     ]
     list_editable = [
-        'versionkind', 'picture', 'isalive', 'isalterego',
+        'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
         'description',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
@@ -189,6 +196,12 @@ class CharacterVersionAdmin(CachedFormfieldForFKMixin, admin.ModelAdmin):
     readonly_fields = [
         'fullname', '_createdat'
     ]
+
+    class Media:
+        css = {
+            'all': (f'{settings.STATIC_URL}css/admin_change_form_characterversion.css',)
+        }
+
 
     def get_img(self, obj):
         if obj.picture:

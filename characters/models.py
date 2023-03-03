@@ -154,19 +154,10 @@ class Character(Model):
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["user"]
+        ordering = ["user__is_superuser", "user__username"]
 
     def __str__(self):
-        return self.user.username
-        try:
-            # Get Character's version with greatest CharacterVersionKind,
-            # the order being "1. DEAD" > "2. MAIN" > "3. PAST" >  "4. PARTIAL"
-            fullname, versionkind = self.characterversions.order_by(
-                "versionkind").values_list('fullname', 'versionkind').first()
-            return f"{fullname} ({self.user.username} - {versionkind})"
-        except:
-            return f"No CharacterVersion [{self.user.username}]"
-
+        return f"{self.user.username} - {self.id}"
 
 
 class CharacterVersionManager(Manager):
