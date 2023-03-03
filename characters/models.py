@@ -1,13 +1,12 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
-    CASCADE, PROTECT, SET_NULL, TextChoices, Model, Manager, F,
+    CASCADE, PROTECT, SET_NULL, SET_DEFAULT, TextChoices, Model, Manager, F,
     CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField,
-    IntegerField, TextField, BooleanField, ManyToManyField as M2M
+    IntegerField, PositiveSmallIntegerField, TextField, BooleanField, ManyToManyField as M2M
 )
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 from resources.models import Picture
-from myproject.utils_models import Tag, get_gamemaster
+from myproject.utils_models import Tag, get_gamemaster, min_max_validators
 from users.models import User
 
 # TODO: add absolute_url when applicable
@@ -42,22 +41,42 @@ class CharacterVersionTag(Tag):
 #  ------------------------------------------------------------
 
 
+class FirstNameGroupManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related('parentgroup')
+        return qs
+
+
 class FirstNameGroup(Model):
+    objects = FirstNameGroupManager()
+
     parentgroup = FK(
-        'self', related_name='locations', on_delete=PROTECT,
+        'self', related_name='firstnamegroups', on_delete=PROTECT,
         blank=True, null=True)
     title = CharField(max_length=100)
-    description = TextField(max_length=10000)
+    description = TextField(max_length=10000, blank=True, null=True)
 
     class Meta:
         ordering = ["title"]
         unique_together = [("title", "parentgroup")]
 
     def __str__(self):
-        return self.title
+        parentgroup = f" [{self.parentgroup.title}]" if self.parentgroup else ""
+        return self.title + parentgroup
+
+
+
+class FirstNameManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related('firstnamegroup__parentgroup')
+        return qs
+
 
 
 class FirstName(Model):
+    objects = FirstNameManager()
 
     class Gender(TextChoices):
         MALE = "MALE", "MALE"
@@ -72,7 +91,7 @@ class FirstName(Model):
         null=True, blank=True, on_delete=PROTECT)
     nominative = CharField(max_length=50, unique=True)
     genitive = CharField(max_length=50, blank=True, null=True)
-    description = TextField(max_length=10000)
+    description = TextField(max_length=10000, blank=True, null=True)
     tags = M2M(FirstNameTag, blank=True)
 
     class Meta:
@@ -87,7 +106,7 @@ class FirstName(Model):
 
 class FamilyNameGroup(Model):
     title = CharField(max_length=100, unique=True)
-    description = TextField(max_length=10000)
+    description = TextField(max_length=10000, blank=True, null=True)
 
     class Meta:
         ordering = ["title"]
@@ -105,7 +124,7 @@ class FamilyName(Model):
     nominative_pl = CharField(max_length=50, blank=True)
     genitive = CharField(max_length=50, blank=True, null=True)
     genitive_pl = CharField(max_length=50, blank=True, null=True)
-    description = TextField(max_length=10000)
+    description = TextField(max_length=10000, blank=True, null=True)
     tags = M2M(FamilyNameTag,  related_name='familynames', blank=True)
 
     class Meta:
@@ -118,7 +137,16 @@ class FamilyName(Model):
 #  ------------------------------------------------------------
 
 
+class CharacterManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related('user')
+        return qs
+
+
 class Character(Model):
+    objects = CharacterManager()
+
     user = FK(User, related_name='characters', default=get_gamemaster, on_delete=CASCADE)
     relationships = M2M(
         'CharacterVersion', through='Relationship',
@@ -129,33 +157,45 @@ class Character(Model):
         ordering = ["user"]
 
     def __str__(self):
+        return self.user.username
         try:
             # Get Character's version with greatest CharacterVersionKind,
             # the order being "1. DEAD" > "2. MAIN" > "3. PAST" >  "4. PARTIAL"
-            fullname, versionkind = CharacterVersion.objects.filter(
-                character__id=self.id
-            ).order_by(
-                "versionkind"
-            ).values_list(
-                'fullname', 'versionkind'
-            ).first()
-            return f"{self.user.username}: {fullname} ({versionkind})"
+            fullname, versionkind = self.characterversions.order_by(
+                "versionkind").values_list('fullname', 'versionkind').first()
+            return f"{fullname} ({self.user.username} - {versionkind})"
         except:
-            return f"{self.user.username}: No CharacterVersion"
+            return f"No CharacterVersion [{self.user.username}]"
 
+
+
+class CharacterVersionManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related(
+             'picture', 'firstname', 'familyname', '_createdby').prefetch_related('character__user__characters')
+        return qs
 
 
 class CharacterVersion(Model):
+    objects = CharacterVersionManager()
 
     class CharacterVersionKind(TextChoices):
         DEAD = "1. DEAD", "DEAD"
         MAIN = "2. MAIN", "MAIN"
-        PAST = "3. PAST", "PAST"
+        CHANGED = "3. CHANGED", "CHANGED"
         PARTIAL = "4. PARTIAL", "PARTIAL"
+        PAST = "5. PAST", "PAST"
 
-    character = FK(Character, related_name='characterversions', on_delete=PROTECT)
-    versionkind = CharField(max_length=10, choices=CharacterVersionKind.choices, default=CharacterVersionKind.MAIN)
-    picture = FK(Picture, related_name='characterversions', on_delete=PROTECT)
+    character = FK(
+        Character, related_name='characterversions', on_delete=PROTECT,
+        null=True, blank=True)  # for player-created ones
+    picture = FK(
+        Picture, related_name='characterversions', on_delete=PROTECT,
+        null=True, blank=True)  # for player-created ones
+    versionkind = CharField(
+        max_length=10, choices=CharacterVersionKind.choices,
+        default=CharacterVersionKind.MAIN)
     isalive = BooleanField(default=True)
     isalterego = BooleanField(default=False)
 
@@ -165,18 +205,24 @@ class CharacterVersion(Model):
     originname = CharField(max_length=50, null=True, blank=True)
     fullname = CharField(max_length=100)
 
-    description = TextField(max_length=10000, null=True)
-    strength = IntegerField(null=True, validators=[MinValueValidator(1), MaxValueValidator(20)])
-    dexterity = IntegerField(null=True, validators=[MinValueValidator(1), MaxValueValidator(20)])
-    endurance = IntegerField(null=True, validators=[MinValueValidator(1), MaxValueValidator(20)])
-    power = IntegerField(null=True, validators=[MinValueValidator(1), MaxValueValidator(20)])
-    experience = IntegerField(null=True, validators=[MinValueValidator(1), MaxValueValidator(20)])
+    strength = IntegerField(null=True, default=9, validators=min_max_validators(1,20))
+    dexterity = IntegerField(null=True, default=9, validators=min_max_validators(1,20))
+    endurance = IntegerField(null=True, default=9, validators=min_max_validators(1,20))
+    power = IntegerField(null=True, default=0, validators=min_max_validators(0,20))
+    experience = PositiveSmallIntegerField(null=True)
+    description = TextField(max_length=10000, blank=True, null=True)
 
     tags = M2M(CharacterVersionTag, related_name='characterversions', blank=True)
+    _createdby = FK(
+        User, related_name='createdcharacterversionss', on_delete=SET_NULL,
+        null=True, blank=True)
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["fullname"]
+        unique_together = [
+            ['character', 'picture', 'versionkind', 'fullname'],
+        ]
 
     def __str__(self):
         return self.fullname

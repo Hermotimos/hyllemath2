@@ -1,6 +1,7 @@
 
 from django.db.models import Model, CharField
 from users.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Tag(Model):
@@ -18,3 +19,6 @@ class Tag(Model):
 def get_gamemaster() -> str:
     return User.objects.filter(is_superuser=True).first().id
 
+
+def min_max_validators(min: int, max: int) -> list:
+    return [MinValueValidator(min), MaxValueValidator(max)]

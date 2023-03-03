@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.db import models
-from django.db.models import CharField, OneToOneField, PROTECT, Func
+from django.db.models import PROTECT, BooleanField, CharField, OneToOneField
+from django.db.models.functions import Collate
 
 from resources.models import Picture
 
@@ -9,15 +9,10 @@ from resources.models import Picture
 class User(AbstractUser):
     picture = OneToOneField(Picture, on_delete=PROTECT, blank=True, null=True)
     collation = CharField(max_length=30, blank=True, null=True)
-    is_spectator = models.BooleanField(default=False)   # Indicates if user can view site content but without editing it
+    is_spectator = BooleanField(default=False)   # Indicates if user can view site content but without editing it
 
     class Meta:
-        ordering = [
-            Func(
-                'username',
-                function='pl-PL-x-icu',
-                template='(%(expressions)s) COLLATE "%(function)s"')
-        ]
+        ordering = [Collate('username', 'pl-PL-x-icu')]
 
     @property
     def is_gamemaster(self):
