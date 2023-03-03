@@ -1,15 +1,17 @@
 from django.contrib import admin
-from django.forms import ModelForm, ModelMultipleChoiceField, BaseModelForm, TextInput
+from django.db.models import TextField, CharField, ForeignKey
+from django.forms import ModelForm, Select, Textarea, TextInput
+from django.utils.html import format_html
 
+from characters.admin_filters import FirstNameGroupAdminFilter
 from characters.models import (
-    FirstName, FirstNameGroup, FirstNameTag,
+    Character,  # Relationship,
+    CharacterVersion, CharacterVersionTag,
     FamilyName, FamilyNameGroup, FamilyNameTag,
-    Character, CharacterVersion, CharacterVersionTag,
-    # CharacterRelationship,
+    FirstName, FirstNameGroup, FirstNameTag
 )
-
+from myproject.utils_admin import CachedFormfieldForFKMixin
 from myproject.utils_models import Tag
-from myproject.utils_admin import formfield_with_cache
 
 
 class TagAdminForm(ModelForm):
@@ -46,15 +48,24 @@ class FirstNameGroupAdmin(admin.ModelAdmin):
 
 
 @admin.register(FirstName)
-class FirstNameAdmin(admin.ModelAdmin):
+class FirstNameAdmin(CachedFormfieldForFKMixin, admin.ModelAdmin):
     filter_horizontal = ['tags']
+    formfield_overrides = {
+        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
+        CharField: {'widget': TextInput(attrs={'size': 20})},
+        ForeignKey: {'widget': Select(attrs={'style': 'width:180px'})},
+    }
     list_display = [
-        'id', 'gender', 'origin', 'nominative', 'genitive', 'description',
+        'id', 'nominative', 'genitive', 'gender', 'firstnamegroup', 'origin',
+        'description',
     ]
     list_editable = [
-        'gender', 'origin', 'nominative', 'genitive', 'description',
+        'nominative', 'genitive', 'gender', 'origin', 'firstnamegroup',
+        'description',
     ]
+    list_filter = ['gender', FirstNameGroupAdminFilter]
     search_fields = ['nominative', 'description']
+
 
 #  ------------------------------------------------------------
 
@@ -76,7 +87,6 @@ class FamilyNameAdmin(admin.ModelAdmin):
         'origin', 'nominative', 'nominative_pl', 'genitive', 'genitive_pl',
         'description',
     ]
-
 
 
 #  ------------------------------------------------------------
@@ -111,7 +121,7 @@ class CharacterRelationshipInline(admin.TabularInline):
 
 
 @admin.register(Character)
-class CharacterAdmin(admin.ModelAdmin):
+class CharacterAdmin(CachedFormfieldForFKMixin, admin.ModelAdmin):
     fields = ['id', 'user', '_createdat']
     inlines = [CharacterRelationshipInline]
     list_display = fields
@@ -148,7 +158,7 @@ class CharacterVersionRelationshipInline(admin.TabularInline):
 
 
 @admin.register(CharacterVersion)
-class CharacterVersionAdmin(admin.ModelAdmin):
+class CharacterVersionAdmin(CachedFormfieldForFKMixin, admin.ModelAdmin):
     fields = [
         'character', 'versionkind', 'picture', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname', 'fullname',
@@ -156,16 +166,22 @@ class CharacterVersionAdmin(admin.ModelAdmin):
         'strength', 'dexterity', 'endurance', 'power', 'experience', 'tags',
     ]
     filter_horizontal = ['tags']
-    inlines = [CharacterVersionRelationshipInline]
+    formfield_overrides = {
+        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
+        CharField: {'widget': TextInput(attrs={'size': 20})},
+        ForeignKey: {'widget': Select(attrs={'style': 'width:180px'})},
+    }
+
+    # inlines = [CharacterVersionRelationshipInline]
     list_display = [
-        'id', 'character', 'versionkind', 'picture', 'isalive', 'isalterego',
+        'get_img', 'versionkind', 'picture', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname', 'fullname',
         'description',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
         '_createdat',
     ]
     list_editable = [
-        'character', 'versionkind', 'picture', 'isalive', 'isalterego',
+        'versionkind', 'picture', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
         'description',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
@@ -174,3 +190,9 @@ class CharacterVersionAdmin(admin.ModelAdmin):
         'fullname', '_createdat'
     ]
 
+    def get_img(self, obj):
+        if obj.picture:
+            return format_html(
+                f'<img src="{obj.picture.image.url}" width="70" height="70">')
+        return format_html(
+            '<img src="media/profile_pics/profile_default.jpg" width="70" height="70">')

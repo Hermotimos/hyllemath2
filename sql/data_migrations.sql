@@ -88,7 +88,9 @@ INSERT INTO characters_firstname (id, gender, nominative, genitive, description,
 SELECT * FROM dblink(
 	'hyllemath',
 	$$
-		SELECT fn.id, ag.type, form, 'TODO', COALESCE(form_2, ''), affix_group_id + 100    -- ids resulting from affix groups inflated to avoid repetitions
+		SELECT fn.id, ag.type, form, 'TODO',
+			COALESCE(form_2, '') || CASE WHEN info IS NOT NULL AND info != '' THEN ' ' || info ELSE '' END,
+			affix_group_id + 100    -- ids resulting from affix groups inflated to avoid repetitions
 		FROM prosoponomikon_firstname AS fn
 		JOIN prosoponomikon_affixgroup AS ag
 			ON fn.affix_group_id = ag.id
@@ -106,7 +108,7 @@ UPDATE characters_firstname
 			WHEN gender = 'FEMALE' AND nominative ~ '[bcdfghjklmnpqrstvwxz]a$'
 				THEN LEFT(nominative, LENGTH(nominative)-1) || 'y'
 			WHEN gender = 'FEMALE'
-				THEN nomina tive
+				THEN nominative
 			ELSE 'TODO'
 		END);
 
@@ -247,12 +249,71 @@ JOIN characters_familyname fn ON fn.nominative = imported.familyname;
 
 
 
+-- ==================================================================================
+-- CHARACTERS / CHARACTER VERSIONS
+
+
+WITH
+imported AS (
+	SELECT *
+	FROM dblink(
+		'hyllemath',
+		$$
+			SELECT p.id AS profileid, p.image, p.is_alive, p.user_id AS userid,
+				c.id AS characterid, c.first_name_id, c.family_name_id, c.cognomen, c.fullname, c.description,
+				c.strength, c.dexterity, c.endurance, c.experience, c.created_by_id, createdby.user_id AS createdbyuserid
+			FROM prosoponomikon_character c
+			JOIN users_profile p ON p.id = c.profile_id
+			LEFT JOIN users_profile createdby ON createdby.id = c.created_by_id
+			WHERE p.id != 1 	-- exclude GM character
+		$$)
+		AS imported(
+				profileid int, image text, is_alive boolean, userid int,
+				characterid int, first_name_id int, family_name_id int, cognomen text, fullname text, description text,
+				strength int, dexterity int, endurance int, experience int, created_by_id int, createdbyuserid int)
+)
+,
+ins_characters AS (
+	INSERT INTO characters_character (id, user_id, _createdat)
+	SELECT profileid, userid, current_timestamp 										-- characters have ids from profiles
+	FROM imported
+	RETURNING *
+),
+ins_pictures AS (
+	INSERT INTO resources_picture (title, category, image)
+	SELECT REPLACE(REPLACE(image, 'profile_pics/profile_', ''), '_', ' '), 'characters', REPLACE(image, ' ', '_')
+	FROM imported
+	WHERE image != 'profile_pics/profile_default.jpg'
+	RETURNING  *
+)
+INSERT INTO characters_characterversion (
+	id, character_id, versionkind, isalive, isalterego, firstname_id, familyname_id,
+	nickname, originname, fullname,
+	description, strength, dexterity, endurance, power, experience,
+	_createdby_id, _createdat, picture_id
+)
+SELECT characterid, profileid, 'MAIN', is_alive, FALSE, first_name_id, family_name_id,
+	CASE WHEN cognomen LIKE 'z %' OR cognomen LIKE 'ze %' THEN NULL ELSE cognomen END,
+	CASE WHEN cognomen LIKE 'z %' OR cognomen LIKE 'ze %' THEN cognomen ELSE NULL END, fullname,
+	description, strength, dexterity, endurance, 0, experience,
+	createdbyuserid, current_timestamp , pic.id
+FROM imported
+--JOIN ins_characters ins_char ON ins_char.id = imported.character_id -- ?? profile_id ?
+JOIN ins_pictures pic ON pic.image = imported.image;
+
+
+
+
+
 -- ----------------------------------------------------------------------------
 -- CHARACTERS TODO:
 /*
 	1) zamienić tagi będące nazwą Location na FirstName.locations M2M i tam zrobić update; tak samo FamilyName
 			*** admin na zasadzie First/FamilyNameGroup z inline First/FamilyName z polami M2M do edycji w inlinie.
 			*** możliwe Locations odfiltrować tylko te, które są krainami, żeby usprawnić wybór
+	2) dla wszystkich "AKA" zrobić nowe CharacterVersion z Relationship
+	3) zrobić wersje z isalterego=True (Hagadon, Farkon itd.)
+	4) Skopiować wszystkie media/ pliki, zamienić Total Commanderem " " na "_" spacja na podkreślenia
 */
 
 
