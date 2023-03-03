@@ -1,0 +1,10 @@
+<!--
+    This template is for adding custom CSS to the admin base site.
+-->
+
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrahead %}
+    <link rel="stylesheet" href="{% static 'css/custom_admin.css' %}">
+{% endblock %}
