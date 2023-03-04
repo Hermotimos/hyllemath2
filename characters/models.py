@@ -4,6 +4,7 @@ from django.db.models import (
     CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField,
     IntegerField, PositiveSmallIntegerField, TextField, BooleanField, ManyToManyField as M2M
 )
+from django.utils.html import format_html
 
 from resources.models import Picture
 from myproject.utils_models import Tag, get_gamemaster, min_max_validators
@@ -27,8 +28,8 @@ class FamilyNameTag(Tag):
 
 class CharacterVersionTag(Tag):
     user = FK(
-        User, related_name='characterversiontags',
-        null=True, blank=True, on_delete=CASCADE)
+        User, related_name='characterversiontags', on_delete=CASCADE,
+        blank=True, null=True)
 
     class Meta:
         ordering = [
@@ -63,7 +64,8 @@ class FirstNameGroup(Model):
 
     def __str__(self):
         parentgroup = f" [{self.parentgroup.title}]" if self.parentgroup else ""
-        return self.title + parentgroup
+        return  format_html(
+            f'<strong style="color: #7fff00;">{self.title}</strong> {parentgroup}')
 
 
 
@@ -91,7 +93,7 @@ class FirstName(Model):
     genitive = CharField(max_length=50, blank=True, null=True)
     origin = FK(
         "self", related_name='originatedfirstnames',
-        null=True, blank=True, on_delete=PROTECT)
+        blank=True, null=True, on_delete=PROTECT)
     equivalents = M2M('self', symmetrical=True, blank=True)
     meaning = TextField(max_length=10000, blank=True, null=True)
     description = TextField(max_length=10000, blank=True, null=True)
@@ -123,7 +125,7 @@ class FamilyName(Model):
     familynamegroup = FK(FamilyNameGroup, related_name='familynames', on_delete=PROTECT)
     origin = FK(
         "self", related_name='originatedfamilynames',
-        null=True, blank=True, on_delete=SET_NULL)
+        blank=True, null=True, on_delete=SET_NULL)
     nominative = CharField(max_length=50, unique=True)
     nominative_pl = CharField(max_length=50, blank=True)
     genitive = CharField(max_length=50, blank=True, null=True)
@@ -185,33 +187,33 @@ class CharacterVersion(Model):
 
     character = FK(
         Character, related_name='characterversions', on_delete=PROTECT,
-        null=True, blank=True)  # for player-created ones
+        blank=True, null=True)  # for player-created ones
     picture = FK(
         Picture, related_name='characterversions', on_delete=PROTECT,
-        null=True, blank=True)  # for player-created ones
+        blank=True, null=True)  # for player-created ones
     versionkind = CharField(
         max_length=10, choices=CharacterVersionKind.choices,
         default=CharacterVersionKind.MAIN)
     isalive = BooleanField(default=True)
     isalterego = BooleanField(default=False)
 
-    firstname = FK(FirstName, on_delete=PROTECT, null=True, blank=True)
-    familyname = FK(FamilyName, on_delete=PROTECT, null=True, blank=True)
-    nickname = CharField(max_length=50, null=True, blank=True)
-    originname = CharField(max_length=50, null=True, blank=True)
+    firstname = FK(FirstName, on_delete=PROTECT, blank=True, null=True)
+    familyname = FK(FamilyName, on_delete=PROTECT, blank=True, null=True)
+    nickname = CharField(max_length=50, blank=True, null=True)
+    originname = CharField(max_length=50, blank=True, null=True)
     fullname = CharField(max_length=100)
 
-    strength = IntegerField(null=True, default=9, validators=min_max_validators(1,20))
-    dexterity = IntegerField(null=True, default=9, validators=min_max_validators(1,20))
-    endurance = IntegerField(null=True, default=9, validators=min_max_validators(1,20))
-    power = IntegerField(null=True, default=0, validators=min_max_validators(0,20))
-    experience = PositiveSmallIntegerField(null=True)
+    strength = IntegerField(default=9, validators=min_max_validators(1,20), blank=True, null=True)
+    dexterity = IntegerField(default=9, validators=min_max_validators(1,20), blank=True, null=True)
+    endurance = IntegerField(default=9, validators=min_max_validators(1,20), blank=True, null=True)
+    power = IntegerField(default=0, validators=min_max_validators(0,20), blank=True, null=True)
+    experience = PositiveSmallIntegerField(blank=True, null=True)
     description = TextField(max_length=10000, blank=True, null=True)
 
     tags = M2M(CharacterVersionTag, related_name='characterversions', blank=True)
     _createdby = FK(
         User, related_name='createdcharacterversionss', on_delete=SET_NULL,
-        null=True, blank=True)
+        blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:

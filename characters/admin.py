@@ -1,17 +1,19 @@
 from django.conf import settings
 from django.contrib import admin
-from django.db.models import TextField, CharField, ForeignKey
+from django.db.models import TextField, CharField, ForeignKey, OneToOneField
 from django.forms import ModelForm, Select, Textarea, TextInput
 from django.utils.html import format_html
 
-from characters.admin_filters import FirstNameGroupAdminFilter
+from characters.admin_filters import (
+    FirstNameGroupOfFirstNameFilter, ParentgroupOfFirstNameGroupFilter,
+)
 from characters.models import (
     Character,  # Relationship,
     CharacterVersion, CharacterVersionTag,
     FamilyName, FamilyNameGroup, FamilyNameTag,
     FirstName, FirstNameGroup, FirstNameTag
 )
-from myproject.utils_admin import CachedFormfieldForFKMixin
+from myproject.utils_admin import CachedFormfieldsFK, CachedFormfieldsM2M, CachedFormfieldsAll
 from myproject.utils_models import Tag
 
 
@@ -42,29 +44,62 @@ class TagAdmin(admin.ModelAdmin):
 #  ------------------------------------------------------------
 
 
+class FirstNameInline(CachedFormfieldsAll, admin.TabularInline):
+    model = FirstName
+    extra = 10
+    fields = [
+        'nominative', 'genitive', 'gender', 'isarchaic', 'origin',
+        'meaning', 'description', 'comments', 'equivalents', 'tags',
+    ]
+    filter_horizontal = ['tags', 'equivalents']
+    formfield_overrides = {
+        TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 14})},
+        CharField: {'widget': TextInput(attrs={'size': 12})},
+        ForeignKey: {'widget': Select(attrs={'style': 'width:120px'})},
+    }
+
+
 @admin.register(FirstNameGroup)
-class FirstNameGroupAdmin(admin.ModelAdmin):
-    list_display = ['id', 'title', 'description']
-    list_editable = ['title', 'description']
+class FirstNameGroupAdmin(CachedFormfieldsFK, admin.ModelAdmin):
+    inlines = [FirstNameInline]
+    list_display = ['id', 'title', 'parentgroup', 'description']
+    list_editable = ['title', 'parentgroup', 'description']
+    list_filter = [ParentgroupOfFirstNameGroupFilter]
+
+    class Media:
+        css = {
+            'all': (f'{settings.STATIC_URL}css/admin_change_form_firstnamegroup.css',)
+        }
 
 
 @admin.register(FirstName)
-class FirstNameAdmin(CachedFormfieldForFKMixin, admin.ModelAdmin):
-    filter_horizontal = ['tags']
+class FirstNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
+    fieldsets = [
+        (None, {
+            'fields': (
+                ('firstnamegroup', 'gender', 'isarchaic'),
+                ('nominative', 'genitive', 'origin'),
+                ('meaning', 'description', 'comments',),
+                'equivalents',
+                'tags'
+            )
+        }),
+    ]
+    filter_horizontal = ['tags', 'equivalents']
     formfield_overrides = {
-        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
-        CharField: {'widget': TextInput(attrs={'size': 20})},
-        ForeignKey: {'widget': Select(attrs={'style': 'width:180px'})},
+        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 20})},
+        CharField: {'widget': TextInput(attrs={'size': 10})},
+        ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
     }
     list_display = [
-        'id', 'nominative', 'genitive', 'gender', 'firstnamegroup', 'origin',
-        'description',
+        'id', 'nominative', 'genitive', 'gender', 'isarchaic', 'firstnamegroup',
+        'origin', 'meaning', 'description', 'comments',
     ]
     list_editable = [
-        'nominative', 'genitive', 'gender', 'origin', 'firstnamegroup',
-        'description',
+        'nominative', 'genitive', 'gender', 'isarchaic', 'firstnamegroup',
+        'origin', 'meaning', 'description', 'comments',
     ]
-    list_filter = ['gender', FirstNameGroupAdminFilter]
+    list_filter = ['gender', FirstNameGroupOfFirstNameFilter]
     search_fields = ['nominative', 'description']
 
 
@@ -122,7 +157,7 @@ class CharacterRelationshipInline(admin.TabularInline):
 
 
 @admin.register(Character)
-class CharacterAdmin(CachedFormfieldForFKMixin, admin.ModelAdmin):
+class CharacterAdmin(CachedFormfieldsFK, admin.ModelAdmin):
     fields = ['id', 'user', '_createdat']
     inlines = [CharacterRelationshipInline]
     list_display = fields
@@ -159,7 +194,7 @@ class CharacterVersionRelationshipInline(admin.TabularInline):
 
 
 @admin.register(CharacterVersion)
-class CharacterVersionAdmin(CachedFormfieldForFKMixin, admin.ModelAdmin):
+class CharacterVersionAdmin(CachedFormfieldsFK, admin.ModelAdmin):
     fieldsets = [
         (None, {
             'fields': (
