@@ -68,7 +68,7 @@ class FirstNameGroupAdmin(CachedFormfieldsFK, admin.ModelAdmin):
 
     class Media:
         css = {
-            'all': (f'{settings.STATIC_URL}css/admin_change_form_firstnamegroup.css',)
+            'all': (f'{settings.STATIC_URL}css/admin_change_form_namegroup.css',)
         }
 
 
@@ -106,8 +106,30 @@ class FirstNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
 #  ------------------------------------------------------------
 
 
+
+class FamilyNameInline(CachedFormfieldsAll, admin.TabularInline):
+    model = FamilyName
+    extra = 5
+    fields = [
+        'origin', 'nominative', 'nominative_pl', 'genitive',
+        'genitive_pl', 'description', 'tags',
+    ]
+    filter_horizontal = ['tags']
+    formfield_overrides = {
+        TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 14})},
+        CharField: {'widget': TextInput(attrs={'size': 12})},
+        ForeignKey: {'widget': Select(attrs={'style': 'width:120px'})},
+    }
+
+    class Media:
+        css = {
+            'all': (f'{settings.STATIC_URL}css/admin_change_form_namegroup.css',)
+        }
+
+
 @admin.register(FamilyNameGroup)
 class FamilyNameGroupAdmin(admin.ModelAdmin):
+    inlines = [FamilyNameInline]
     list_display = ['id', 'title', 'description']
     list_editable = ['title', 'description']
 
