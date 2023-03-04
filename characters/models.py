@@ -84,15 +84,19 @@ class FirstName(Model):
         UNISEX = "UNISEX", "UNISEX"
         NONE = "NONE", "NONE"
 
-    gender = CharField(max_length=6, choices=Gender.choices, default=Gender.MALE)
     firstnamegroup = FK(FirstNameGroup, related_name='firstnames', on_delete=PROTECT)
+    gender = CharField(max_length=6, choices=Gender.choices, default=Gender.MALE)
+    isarchaic = BooleanField(default=False)
+    nominative = CharField(max_length=50, unique=True)
+    genitive = CharField(max_length=50, blank=True, null=True)
     origin = FK(
         "self", related_name='originatedfirstnames',
         null=True, blank=True, on_delete=PROTECT)
-    nominative = CharField(max_length=50, unique=True)
-    genitive = CharField(max_length=50, blank=True, null=True)
+    equivalents = M2M('self', symmetrical=True, blank=True)
+    meaning = TextField(max_length=10000, blank=True, null=True)
     description = TextField(max_length=10000, blank=True, null=True)
     tags = M2M(FirstNameTag, blank=True)
+    comments = TextField(max_length=10000, blank=True, null=True)
 
     class Meta:
         ordering = ["nominative"]
@@ -126,6 +130,7 @@ class FamilyName(Model):
     genitive_pl = CharField(max_length=50, blank=True, null=True)
     description = TextField(max_length=10000, blank=True, null=True)
     tags = M2M(FamilyNameTag,  related_name='familynames', blank=True)
+    comments = TextField(max_length=10000, blank=True, null=True)
 
     class Meta:
         ordering = ["nominative"]
