@@ -59,6 +59,8 @@ SELECT * FROM dblink(
 	$$)
 AS imported(id int, title text, description TEXT, name_group_id int);
 
+SELECT setval('characters_familynamegroup_id_seq', 1 + (SELECT MAX(id) FROM characters_firstnamegroup));
+
 
 
 
@@ -81,21 +83,27 @@ AS imported(social_info text, color TEXT);
 
 
 
-
 -- FirstName ==> FirstName
 
-INSERT INTO characters_firstname (id, gender, nominative, genitive, description, firstnamegroup_id)
+INSERT INTO characters_firstname (
+	id, gender, nominative, genitive, isarchaic, meaning, comments,
+	origin_id, firstnamegroup_id)
 SELECT * FROM dblink(
 	'hyllemath',
 	$$
-		SELECT fn.id, ag.type, form, 'TODO',
-			COALESCE(form_2, '') || CASE WHEN info IS NOT NULL AND info != '' THEN ' ' || info ELSE '' END,
+		SELECT fn.id, ag.type, form, 'TODO', isarchaic, meaning, comments,
+			origin_id,
 			affix_group_id + 100    -- ids resulting from affix groups inflated to avoid repetitions
 		FROM prosoponomikon_firstname AS fn
 		JOIN prosoponomikon_affixgroup AS ag
 			ON fn.affix_group_id = ag.id
 	$$)
-AS imported(id int, gender TEXT, nominative TEXT, genitive TEXT, description TEXT, firstnamegroup_id int);
+AS imported(
+	id int, gender TEXT, nominative TEXT, genitive TEXT, isarchaic boolean, meaning TEXT, comments TEXT,
+	origin_id int, firstnamegroup_id int);
+
+SELECT setval('characters_firstname_id_seq', 1 + (SELECT MAX(id) FROM characters_firstname));
+
 
 -- Utwórz formy dopełniacza
 UPDATE characters_firstname
@@ -111,6 +119,20 @@ UPDATE characters_firstname
 				THEN nominative
 			ELSE 'TODO'
 		END);
+
+
+
+
+-- FirstName M2M equivalents ==> FirstName M2M equivalents
+
+INSERT INTO characters_firstname_equivalents (id, from_firstname_id, to_firstname_id)
+SELECT * FROM dblink(
+	'hyllemath',
+	$$
+		SELECT id, from_firstname_id, to_firstname_id
+		FROM prosoponomikon_firstname_equivalents
+	$$)
+AS imported(id int, from_firstname_id int, to_firstname_id int);
 
 
 
@@ -173,7 +195,7 @@ WITH familyname_locations AS (
 	AS imported(familyname TEXT, locationname text))
 INSERT INTO characters_familynametag (title, color)
 SELECT DISTINCT locationname, '#000000'
-FROM familyname_locations
+FROM familyname_locations;
 
 
 
@@ -191,6 +213,9 @@ SELECT * FROM dblink(
 AS imported(
 	id int, nominative TEXT, nominative_pl TEXT, genitive TEXT, genitive_pl TEXT,
 	description TEXT, familynamegroup_id int);
+
+SELECT setval('characters_familyname_id_seq', 1 + (SELECT MAX(id) FROM characters_familyname));
+
 
 
 -- Utwórz formy dopełniacza i liczby mnogiej
@@ -281,7 +306,7 @@ ins_characters AS (
 ),
 ins_pictures AS (
 	INSERT INTO resources_picture (title, category, image)
-	SELECT REPLACE(REPLACE(image, 'profile_pics/profile_', ''), '_', ' '), 'characters', REPLACE(image, ' ', '_')
+	SELECT REPLACE(REPLACE(image, 'profile_pics/profile_', ''), '_', ' '), 'characters', image
 	FROM imported
 	WHERE image != 'profile_pics/profile_default.jpg'
 	RETURNING  *
@@ -292,14 +317,144 @@ INSERT INTO characters_characterversion (
 	description, strength, dexterity, endurance, power, experience,
 	_createdby_id, _createdat, picture_id
 )
-SELECT characterid, profileid, 'MAIN', is_alive, FALSE, first_name_id, family_name_id,
+SELECT characterid, profileid, '2. MAIN', is_alive, FALSE, first_name_id, family_name_id,
 	CASE WHEN cognomen LIKE 'z %' OR cognomen LIKE 'ze %' THEN NULL ELSE cognomen END,
 	CASE WHEN cognomen LIKE 'z %' OR cognomen LIKE 'ze %' THEN cognomen ELSE NULL END, fullname,
 	description, strength, dexterity, endurance, 0, experience,
 	createdbyuserid, current_timestamp , pic.id
 FROM imported
---JOIN ins_characters ins_char ON ins_char.id = imported.character_id -- ?? profile_id ?
-JOIN ins_pictures pic ON pic.image = imported.image;
+LEFT JOIN ins_pictures pic ON pic.image = imported.image;			-- LEFT dla postaci bez obrazka: utworzone przez graczy lub niedokończone
+
+
+SELECT setval('characters_character_id_seq', 1 + (SELECT MAX(id) FROM characters_character));
+SELECT setval('characters_characterversion_id_seq', 1 + (SELECT MAX(id) FROM characters_characterversion));
+
+
+
+
+
+/*
+IMPORTANT:
+		* Profile.id 			----> 	Character.id
+		* Character.id 		-----> 	CharacterVersion.id
+*/
+
+
+-- all 9143 minus GM 395 = 9748
+
+-- Acquaitanceship ==> Relationship (non-AKA) 8727
+
+INSERT INTO characters_relationship (id, isdirect, character_id, characterversion_id)
+SELECT id, is_direct, profileid, known_character_id
+FROM dblink(
+	'hyllemath',
+	$$
+		SELECT a.id, a.is_direct, a.knowing_character_id, a.known_character_id,
+			knowing.id, knowing.profile_id, knowing.fullname
+		FROM prosoponomikon_acquaintanceship a
+		JOIN prosoponomikon_character knowing ON knowing.id = knowing_character_id
+		JOIN prosoponomikon_character known ON known.id = known_character_id
+		WHERE knowing.profile_id != 1																		-- nie rób Relationship dla MG
+			AND known.created_by_id IS NULL															-- odfiltruj player-created
+			AND (a.knows_as_name = '') IS NOT FALSE 									-- odfiltruj "AKA" (te gdzie nie-null i nie '')
+			AND (a.knows_as_description = '') IS NOT FALSE
+			AND (a.knows_as_image = '') IS NOT FALSE
+	$$)
+	AS imported(
+	id int, is_direct boolean, knowing_character_id int, known_character_id int,
+	characterid int, profileid int, fullname text);
+
+
+SELECT setval('characters_relationship_id_seq', 1 + (SELECT MAX(id) FROM characters_relationship));
+
+
+
+
+-- Acquaitanceship AKA ==> Relationship + CharacterVersion(for AKA) 18
+
+WITH
+imported AS (
+	SELECT * --id, is_direct, profileid, known_character_id
+	FROM dblink(
+		'hyllemath',
+		$$
+			SELECT a.id acquaintanceshipid, a.is_direct,
+				a.knowing_character_id, knowing.profile_id, knowing.fullname knowing_fullname,
+				a.known_character_id, known.fullname known_fullname,
+				a.knows_as_name, a.knows_as_description, a.knows_as_image
+			FROM prosoponomikon_acquaintanceship a
+			JOIN prosoponomikon_character knowing ON knowing.id = knowing_character_id
+			JOIN prosoponomikon_character known ON known.id = known_character_id
+			WHERE knowing.profile_id != 1																															-- nie rób Relationship dla MG
+				AND known.created_by_id IS NULL																													-- odfiltruj player-created
+				AND (a.knows_as_name != '' OR a.knows_as_description != '' OR a.knows_as_image != '' ) 	-- weź tylko "AKA" (te gdzie nie-null i nie '')
+		$$)
+		AS imported(
+			acquaintanceshipid int, is_direct boolean,
+			knowing_character_id int, profileid int, knowing_fullname TEXT,
+			known_character_id int, known_fullname TEXT,
+			knows_as_name TEXT, knows_as_description TEXT, knows_as_image TEXT)
+),
+ins_pictures AS (
+	INSERT INTO resources_picture (title, category, image)
+	SELECT REPLACE(REPLACE(knows_as_image, 'profile_pics/profile_', ''), '_', ' '), 'characters', knows_as_image
+	FROM imported
+	WHERE knows_as_image != 'profile_pics/profile_default.jpg' AND knows_as_image != ''
+	ON CONFLICT (title) DO NOTHING
+),
+inserted AS (
+	INSERT INTO characters_characterversion (
+		id, character_id, versionkind, isalive, isalterego, firstname_id, familyname_id,
+		nickname, originname, fullname,
+		description, _createdat, picture_id
+	)
+	SELECT nextval('characters_character_id_seq'), NULL, '4. PARTIAL', TRUE, FALSE, NULL, NULL,
+		split_part(knows_as_name, ' z ', 1),
+		'z ' || split_part(knows_as_name, ' z ', 2),
+		knows_as_name,
+		knows_as_description, current_timestamp , pic.id
+	FROM imported
+	LEFT JOIN resources_picture pic ON pic.image = imported.knows_as_image
+	RETURNING *
+)
+INSERT INTO characters_relationship (id, isdirect, character_id, characterversion_id)
+SELECT nextval('characters_relationship_id_seq'), is_direct, profileid, known_character_id
+FROM imported;
+
+
+
+
+-- Acquaitanceship ==> Relationship (player-created) 3
+
+WITH inserted AS (
+	INSERT INTO characters_relationship (id, isdirect, character_id, characterversion_id)
+	SELECT id, is_direct, createdbyid, known_character_id
+	FROM dblink(
+		'hyllemath',
+		$$
+			SELECT a.id, a.is_direct, a.knowing_character_id, a.known_character_id,
+				known.id, known.profile_id, known.fullname, known.created_by_id
+			FROM prosoponomikon_acquaintanceship a
+			JOIN prosoponomikon_character knowing ON knowing.id = knowing_character_id
+			JOIN prosoponomikon_character known ON known.id = known_character_id
+			WHERE known.created_by_id IS NOT NULL							-- tylko player-created
+				AND knowing_character_id != 30							-- nie rób Relationship dla MG
+		$$)
+		AS imported(
+			id int, is_direct boolean, knowing_character_id int, known_character_id int,
+			characterid int, profileid int, fullname TEXT, createdbyid int)
+	RETURNING *
+)
+UPDATE characters_characterversion c
+SET versionkind = '6. BYPLAYER'
+FROM inserted
+WHERE c.id = inserted.characterversion_id;
+
+
+SELECT setval('characters_relationship_id_seq', 1 + (SELECT MAX(id) FROM characters_relationship));
+
+
+
 
 
 
@@ -314,6 +469,8 @@ JOIN ins_pictures pic ON pic.image = imported.image;
 	2) dla wszystkich "AKA" zrobić nowe CharacterVersion z Relationship
 	3) zrobić wersje z isalterego=True (Hagadon, Farkon itd.)
 	4) Skopiować wszystkie media/ pliki, zamienić Total Commanderem " " na "_" spacja na podkreślenia
+	5) FirstName form2 i info pola są wtłaczane w FirstName.description i trzeba je rozdzielić na: isarchaic, origin, equivalents i description
+
 */
 
 

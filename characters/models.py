@@ -171,7 +171,8 @@ class CharacterVersionManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
         qs = qs.select_related(
-             'picture', 'firstname', 'familyname', '_createdby').prefetch_related('character__user__characters')
+            'picture', 'firstname', 'familyname', '_createdby',
+        )
         return qs
 
 
@@ -184,6 +185,7 @@ class CharacterVersion(Model):
         CHANGED = "3. CHANGED", "CHANGED"
         PARTIAL = "4. PARTIAL", "PARTIAL"
         PAST = "5. PAST", "PAST"
+        BYPLAYER = "6. BYPLAYER", "BYPLAYER"
 
     character = FK(
         Character, related_name='characterversions', on_delete=PROTECT,
@@ -192,7 +194,7 @@ class CharacterVersion(Model):
         Picture, related_name='characterversions', on_delete=PROTECT,
         blank=True, null=True)  # for player-created ones
     versionkind = CharField(
-        max_length=10, choices=CharacterVersionKind.choices,
+        max_length=15, choices=CharacterVersionKind.choices,
         default=CharacterVersionKind.MAIN)
     isalive = BooleanField(default=True)
     isalterego = BooleanField(default=False)
@@ -223,7 +225,7 @@ class CharacterVersion(Model):
         ]
 
     def __str__(self):
-        return self.fullname
+        return f"{self.fullname} ({self.versionkind})"
 
     def save(self, *args, **kwargs):
         firstname, familyname, nickname, originname = (
@@ -237,7 +239,17 @@ class CharacterVersion(Model):
         super().save(*args, **kwargs)
 
 
+
+class RelationshipManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related('character__user', 'characterversion__character')
+        return qs
+
+
 class Relationship(Model):
+    objects = RelationshipManager()
+
     character = FK(Character, on_delete=PROTECT)
     characterversion = FK(CharacterVersion, on_delete=PROTECT)
     isdirect = BooleanField(default=False)
@@ -247,7 +259,7 @@ class Relationship(Model):
         unique_together = ['character', 'characterversion']
 
     def __str__(self):
-        return f"{self.character} -> ({self.characterversion.versionkind}) -> {self.characterversion}"
+        return f"{self.character} -> {self.characterversion}"
 
 
 #  ------------------------------------------------------------

@@ -8,7 +8,7 @@ from characters.admin_filters import (
     FirstNameGroupOfFirstNameFilter, ParentgroupOfFirstNameGroupFilter,
 )
 from characters.models import (
-    Character,  # Relationship,
+    Character,  Relationship,
     CharacterVersion, CharacterVersionTag,
     FamilyName, FamilyNameGroup, FamilyNameTag,
     FirstName, FirstNameGroup, FirstNameTag
@@ -150,44 +150,37 @@ class FamilyNameAdmin(admin.ModelAdmin):
 #  ------------------------------------------------------------
 
 
-class CharacterRelationshipInline(admin.TabularInline):
+class RelationshipInlineForCharacter(CachedFormfieldsFK, admin.TabularInline):
     """
-    An inline for handling Relationships from Charcter's perspective.
+    An inline for handling Relationships from Character's perspective.
     That is - which CharacterVersions this Character knows.
     This is different from CharacterVersionRelationshipInline, which is for
     handling Characters who know this CharacterVersion.
     """
-    model = Character.relationships.through
+    model = Relationship
     fk_name = 'character'
-
-    # TODO: optimize inline: 1. migrate data, 2. optimize with real db records
-
-    # def get_queryset(self, request):
-    #     qs = super().get_queryset(request)
-    #     print(qs)
-    #     return qs.prefetch_related('character__characterversions').select_related('character__user', 'characterversion')
-
-    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
-    #     formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
-    #     for field in [
-    #         'character',
-    #         'characterversion',
-    #     ]:
-    #         if db_field.name == field:
-    #             formfield = formfield_with_cache(field, formfield, request)
-    #     return formfield
 
 
 @admin.register(Character)
 class CharacterAdmin(CachedFormfieldsFK, admin.ModelAdmin):
-    fields = ['id', 'user', '_createdat']
-    inlines = [CharacterRelationshipInline]
-    list_display = fields
+    fields = ['user', '_createdat']
+    inlines = [RelationshipInlineForCharacter]
+    list_display = ['main_characterversion', 'user', '_createdat']
     list_editable = ['user']
-    readonly_fields = ['id', '_createdat']
+    readonly_fields = ['_createdat']
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('characterversions')
+
+    def main_characterversion(self, obj):
+        try:
+            return obj.characterversions.filter(versionkind="2. MAIN").first().fullname
+        except:
+            return obj
 
 
-class CharacterVersionRelationshipInline(admin.TabularInline):
+class RelationshipInlineForCharacterVersion(CachedFormfieldsAll, admin.TabularInline):
     """
     An inline for handling Relationships from CharacterVersion's perspective.
     That is - which Characters know this CharacterVersion.
@@ -196,23 +189,7 @@ class CharacterVersionRelationshipInline(admin.TabularInline):
     """
     model = CharacterVersion.known_by_characters.through
     fk_name = 'characterversion'
-
-    # TODO: optimize inline: 1. migrate data, 2. optimize with real db records
-
-    # def get_queryset(self, request):
-    #     qs = super().get_queryset(request)
-    #     print(qs)
-    #     return qs.prefetch_related('character__characterversions').select_related('character__user', 'characterversion')
-
-    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
-    #     formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
-    #     for field in [
-    #         'character',
-    #         'characterversion',
-    #     ]:
-    #         if db_field.name == field:
-    #             formfield = formfield_with_cache(field, formfield, request)
-    #     return formfield
+    extra = 2
 
 
 @admin.register(CharacterVersion)
@@ -236,8 +213,7 @@ class CharacterVersionAdmin(CachedFormfieldsFK, admin.ModelAdmin):
         CharField: {'widget': TextInput(attrs={'size': 15})},
         ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
     }
-
-    # inlines = [CharacterVersionRelationshipInline]
+    inlines = [RelationshipInlineForCharacterVersion]
     list_display = [
         'get_img', 'fullname', 'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
@@ -253,12 +229,12 @@ class CharacterVersionAdmin(CachedFormfieldsFK, admin.ModelAdmin):
     readonly_fields = [
         'fullname', '_createdat'
     ]
+    search_fields = ['fullname']
 
     class Media:
         css = {
             'all': (f'{settings.STATIC_URL}css/admin_change_form_characterversion.css',)
         }
-
 
     def get_img(self, obj):
         if obj.picture:
