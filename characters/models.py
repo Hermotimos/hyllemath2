@@ -219,7 +219,7 @@ class CharacterVersion(Model):
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["fullname"]
+        ordering = ["fullname", "versionkind"]
         unique_together = [
             ['character', 'picture', 'versionkind', 'fullname'],
         ]

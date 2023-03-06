@@ -280,3 +280,23 @@ AUTH_USER_MODEL = "users.User"
 LOGIN_REDIRECT_URL = "users:home"
 LOGIN_URL = "users:login"
 LOGOUT_REDIRECT_URL = "users:login"
+
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'django.request': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}

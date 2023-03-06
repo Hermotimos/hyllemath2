@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
-from django.db.models import TextField, CharField, ForeignKey, OneToOneField
+from django.db.models import TextField, CharField, ForeignKey, Max
 from django.forms import ModelForm, Select, Textarea, TextInput
 from django.utils.html import format_html
 
@@ -82,7 +82,7 @@ class FirstNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
                 ('meaning', 'description', 'comments',),
                 'equivalents',
                 'tags'
-            )
+            ),
         }),
     ]
     filter_horizontal = ['tags', 'equivalents']
@@ -135,8 +135,13 @@ class FamilyNameGroupAdmin(admin.ModelAdmin):
 
 
 @admin.register(FamilyName)
-class FamilyNameAdmin(admin.ModelAdmin):
+class FamilyNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
     filter_horizontal = ['tags']
+    formfield_overrides = {
+        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
+        CharField: {'widget': TextInput(attrs={'size': 15})},
+        ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
+    }
     list_display = [
         'id', 'origin', 'nominative', 'nominative_pl', 'genitive',
         'genitive_pl', 'description',
@@ -165,19 +170,18 @@ class RelationshipInlineForCharacter(CachedFormfieldsFK, admin.TabularInline):
 class CharacterAdmin(CachedFormfieldsFK, admin.ModelAdmin):
     fields = ['user', '_createdat']
     inlines = [RelationshipInlineForCharacter]
-    list_display = ['main_characterversion', 'user', '_createdat']
+    list_display = ['id', 'main_characterversion', 'user', '_createdat']
     list_editable = ['user']
-    readonly_fields = ['_createdat']
+    readonly_fields = ['main_characterversion', '_createdat']
+
+    def main_characterversion(self, obj):
+        return obj.main_characterversion
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.prefetch_related('characterversions')
-
-    def main_characterversion(self, obj):
-        try:
-            return obj.characterversions.filter(versionkind="2. MAIN").first().fullname
-        except:
-            return obj
+        qs = qs.prefetch_related('characterversions')
+        qs = qs.annotate(main_characterversion=Max('characterversions__fullname'))
+        return qs
 
 
 class RelationshipInlineForCharacterVersion(CachedFormfieldsAll, admin.TabularInline):

@@ -16,7 +16,7 @@ class User(AbstractUser):
 
     @property
     def is_gamemaster(self):
-        return all(self.is_staff, self.is_superuser)
+        return all([self.is_staff, self.is_superuser])
 
     @property
     def is_auxiliary(self):
@@ -25,11 +25,11 @@ class User(AbstractUser):
 
     @property
     def is_player(self):
-        return not any(self.is_staff, self.is_superuser, self.is_spectator)
+        return not any([self.is_staff, self.is_superuser, self.is_spectator])
 
     @property
     def is_active_player(self):
-        return all(self.is_player, self.is_active)
+        return all([self.is_player, self.is_active])
 
     @property
     def can_action(self):
@@ -37,7 +37,7 @@ class User(AbstractUser):
 
     @property
     def can_view_all(self):
-        return any(self.is_superuser, self.is_staff, self.is_spectator)
+        return any([self.is_superuser, self.is_staff, self.is_spectator])
 
     @property
     def picture_url(self):

@@ -1,8 +1,10 @@
 
 
 def formfield_with_cache(db_field, formfield, request):
+    # the condition "if formfield:" may be useful at the beginning, if errors
+    # when an extra computed field gets here
     choices = getattr(request, f'_{db_field.name}_choices_cache', None)
-    if choices is None:
+    if choices is None and getattr(formfield, 'choices', None):
         choices = list(formfield.choices)
         setattr(request, f'_{db_field.name}_choices_cache', choices)
     formfield.choices = choices

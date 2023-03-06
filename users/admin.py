@@ -8,13 +8,13 @@ class UserAdmin(admin.ModelAdmin):
         'username', 'is_active', 'is_superuser', 'is_staff', 'is_spectator',
         'first_name', 'last_name', 'email',
         'picture', 'collation',
-        'date_joined', 'last_login', 'password',
+        'date_joined', 'last_login',
     ]
     list_display = [
-        'id', 'username', 'is_active', 'is_superuser', 'is_staff', 'is_spectator',
-        'first_name', 'last_name', 'email',
-        'picture', 'collation',
-        'date_joined', 'last_login', 'password',
+        'username', 'is_active', 'is_superuser', 'is_staff', 'is_spectator',
+        'email', 'picture',
+        'can_action', 'can_view_all',   # properties
+        'date_joined', 'last_login', 'collation',
     ]
     list_editable = ['is_active', 'is_superuser', 'is_staff', 'is_spectator']
     list_filter = ['is_active', 'is_superuser', 'is_staff']
