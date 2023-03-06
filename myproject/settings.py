@@ -266,7 +266,11 @@ INTERNAL_IPS = ["127.0.0.1", ]
 # https://stackoverflow.com/questions/16303098/django-development-server-and-mime-types/64055514#64055514
 # After editing registry - restart local server for changes to take effect
 
-
+# Disable in production (even if DEBUG is set to true)
+if os.getenv('GAE_ENV', '').startswith('standard'):
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': lambda r: False,
+    }
 
 
 # Default 1000 is too low for large inlines in admin
