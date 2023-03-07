@@ -372,6 +372,22 @@ SELECT setval('characters_relationship_id_seq', 1 + (SELECT MAX(id) FROM charact
 
 -- Acquaitanceship AKA ==> Relationship + CharacterVersion(for AKA) 18
 
+
+-- Create Picture objects for AKA with alternative pics
+INSERT INTO resources_picture (title, category, image)
+SELECT DISTINCT REPLACE(REPLACE(knows_as_image, 'profile_pics/profile_', ''), '_', ' '), 'characters', knows_as_image
+FROM dblink(
+	'hyllemath',
+	$$
+		SELECT knows_as_image
+		FROM prosoponomikon_acquaintanceship
+		WHERE knows_as_image != ''
+	$$)
+	AS imported(knows_as_image TEXT)
+ON CONFLICT (title) DO NOTHING;
+
+
+
 WITH
 imported AS (
 	SELECT * --id, is_direct, profileid, known_character_id
@@ -380,7 +396,7 @@ imported AS (
 		$$
 			SELECT a.id acquaintanceshipid, a.is_direct,
 				a.knowing_character_id, knowing.profile_id, knowing.fullname knowing_fullname,
-				a.known_character_id, known.fullname known_fullname,
+				a.known_character_id, known.fullname known_fullname, known.profile_id known_profileid,
 				a.knows_as_name, a.knows_as_description, a.knows_as_image
 			FROM prosoponomikon_acquaintanceship a
 			JOIN prosoponomikon_character knowing ON knowing.id = knowing_character_id
@@ -392,15 +408,8 @@ imported AS (
 		AS imported(
 			acquaintanceshipid int, is_direct boolean,
 			knowing_character_id int, profileid int, knowing_fullname TEXT,
-			known_character_id int, known_fullname TEXT,
+			known_character_id int, known_fullname TEXT, known_profileid int,
 			knows_as_name TEXT, knows_as_description TEXT, knows_as_image TEXT)
-),
-ins_pictures AS (
-	INSERT INTO resources_picture (title, category, image)
-	SELECT REPLACE(REPLACE(knows_as_image, 'profile_pics/profile_', ''), '_', ' '), 'characters', knows_as_image
-	FROM imported
-	WHERE knows_as_image != 'profile_pics/profile_default.jpg' AND knows_as_image != ''
-	ON CONFLICT (title) DO NOTHING
 ),
 inserted AS (
 	INSERT INTO characters_characterversion (
@@ -408,18 +417,21 @@ inserted AS (
 		nickname, originname, fullname,
 		description, _createdat, picture_id
 	)
-	SELECT nextval('characters_character_id_seq'), NULL, '4. PARTIAL', TRUE, FALSE, NULL, NULL,
+	SELECT DISTINCT ON (knows_as_name, knows_as_description, knows_as_image)
+		nextval('characters_character_id_seq'), known_profileid, '4. PARTIAL', TRUE, FALSE, NULL, NULL,
 		split_part(knows_as_name, ' z ', 1),
-		'z ' || split_part(knows_as_name, ' z ', 2),
-		knows_as_name,
-		knows_as_description, current_timestamp , pic.id
-	FROM imported
+		CASE WHEN split_part(knows_as_name, ' z ', 2) != '' THEN 'z ' || split_part(knows_as_name, ' z ', 2) ELSE '' END,
+		CASE WHEN knows_as_name != '' THEN knows_as_name ELSE chv.fullname END,
+		CASE WHEN knows_as_description != '' THEN knows_as_description ELSE chv.description END,
+		current_timestamp , COALESCE(pic.id, chv.picture_id)
+	FROM imported JOIN characters_characterversion chv ON imported.known_character_id = chv.id
 	LEFT JOIN resources_picture pic ON pic.image = imported.knows_as_image
 	RETURNING *
 )
 INSERT INTO characters_relationship (id, isdirect, character_id, characterversion_id)
-SELECT nextval('characters_relationship_id_seq'), is_direct, profileid, known_character_id
-FROM imported;
+SELECT DISTINCT ON ((knowing_character_id, profileid, known_fullname)) nextval('characters_relationship_id_seq'), is_direct, profileid, ins.id
+FROM imported imp JOIN inserted ins ON imp.knows_as_name = ins.fullname
+RETURNING *;
 
 
 
@@ -466,14 +478,22 @@ SELECT setval('characters_relationship_id_seq', 1 + (SELECT MAX(id) FROM charact
 	1) zamienić tagi będące nazwą Location na FirstName.locations M2M i tam zrobić update; tak samo FamilyName
 			*** admin na zasadzie First/FamilyNameGroup z inline First/FamilyName z polami M2M do edycji w inlinie.
 			*** możliwe Locations odfiltrować tylko te, które są krainami, żeby usprawnić wybór
-	2) dla wszystkich "AKA" zrobić nowe CharacterVersion z Relationship
-	3) zrobić wersje z isalterego=True (Hagadon, Farkon itd.)
-	4) Skopiować wszystkie media/ pliki, zamienić Total Commanderem " " na "_" spacja na podkreślenia
-	5) FirstName form2 i info pola są wtłaczane w FirstName.description i trzeba je rozdzielić na: isarchaic, origin, equivalents i description
+	2) [???] zrobić wersje z isalterego=True (Hagadon, Farkon itd.)
+	3) Skopiować wszystkie media/ pliki, zamienić Total Commanderem " " na "_" spacja na podkreślenia
+
 
 */
 
 
+/*
 
+TRUNCATE characters_familyname CASCADE;
+TRUNCATE characters_firstname CASCADE;
+TRUNCATE characters_familynamegroup CASCADE;
+TRUNCATE characters_firstnamegroup CASCADE;
+TRUNCATE characters_familynametag  CASCADE;
+TRUNCATE characters_firstnametag  CASCADE;
+TRUNCATE users_user CASCADE;
+TRUNCATE resources_picture CASCADE;
 
-
+*/
