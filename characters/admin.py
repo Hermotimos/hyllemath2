@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.db.models import TextField, CharField, ForeignKey, Max
 from django.forms import ModelForm, Select, Textarea, TextInput
 from django.utils.html import format_html
+from django.utils.http import urlencode
+from django.urls import reverse
 
 from characters.admin_filters import (
     FirstNameGroupOfFirstNameFilter, ParentgroupOfFirstNameGroupFilter,
@@ -13,7 +15,10 @@ from characters.models import (
     FamilyName, FamilyNameGroup, FamilyNameTag,
     FirstName, FirstNameGroup, FirstNameTag
 )
-from myproject.utils_admin import CachedFormfieldsFK, CachedFormfieldsM2M, CachedFormfieldsAll
+from myproject.utils_admin import (
+    CachedFormfieldsFK, CachedFormfieldsM2M, CachedFormfieldsAll,
+    get_count_color,
+)
 from myproject.utils_models import Tag
 
 
@@ -100,6 +105,8 @@ class FirstNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
         'origin', 'meaning', 'description', 'comments',
     ]
     list_filter = ['gender', FirstNameGroupOfFirstNameFilter]
+    list_per_page = 50
+    prepopulated_fields = {'genitive': ['nominative']}
     search_fields = ['nominative', 'description']
 
 
@@ -150,6 +157,12 @@ class FamilyNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
         'origin', 'nominative', 'nominative_pl', 'genitive', 'genitive_pl',
         'description',
     ]
+    prepopulated_fields = {
+        'nominative_pl': ['nominative'],
+        'genitive': ['nominative'],
+        'genitive_pl': ['nominative'],
+    }
+    search_fields = ['nominative', 'description']
 
 
 #  ------------------------------------------------------------
@@ -170,18 +183,37 @@ class RelationshipInlineForCharacter(CachedFormfieldsFK, admin.TabularInline):
 class CharacterAdmin(CachedFormfieldsFK, admin.ModelAdmin):
     fields = ['user', '_createdat']
     inlines = [RelationshipInlineForCharacter]
-    list_display = ['id', 'main_characterversion', 'user', '_createdat']
+    list_display = [
+        'id', 'main_characterversion', 'user', 'get_related_characterversions',
+        '_createdat',
+    ]
     list_editable = ['user']
-    readonly_fields = ['main_characterversion', '_createdat']
-
-    def main_characterversion(self, obj):
-        return obj.main_characterversion
+    readonly_fields = ['_createdat']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = qs.prefetch_related('characterversions')
         qs = qs.annotate(main_characterversion=Max('characterversions__fullname'))
         return qs
+
+    def main_characterversion(self, obj):
+        return obj.main_characterversion
+
+    def get_related_characterversions(self, obj):
+        if count := obj.characterversions.count():
+            url = (
+                reverse("admin:characters_characterversion_changelist")
+                + "?"
+                + urlencode({"character__id": f"{obj.id}"})
+            )
+            color = get_count_color(count)
+            html = '<a href="{}" style="border: 1px solid; padding: 2px 3px; color: {};">{}</a>'
+            return format_html(html, url, color, count)
+        return "-"
+
+    main_characterversion.short_description = "Main Character Version "
+    get_related_characterversions.short_description = "Character Versions"
+
 
 
 class RelationshipInlineForCharacterVersion(CachedFormfieldsAll, admin.TabularInline):
@@ -230,6 +262,7 @@ class CharacterVersionAdmin(CachedFormfieldsFK, admin.ModelAdmin):
         'description',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
     ]
+    list_per_page = 50
     readonly_fields = [
         'fullname', '_createdat'
     ]
@@ -246,3 +279,5 @@ class CharacterVersionAdmin(CachedFormfieldsFK, admin.ModelAdmin):
                 f'<img src="{obj.picture.image.url}" width="70" height="70">')
         return format_html(
             '<img src="media/profile_pics/profile_default.jpg" width="70" height="70">')
+
+    get_img.short_description = "Image"

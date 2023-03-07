@@ -54,3 +54,17 @@ class CachedFormfieldsFK:
 class CachedFormfieldsAll(CachedFormfieldsFK, CachedFormfieldsM2M):
     """A utility class for joining the effects of its parent classes."""
     pass
+
+
+def get_count_color(value):
+    colors = {
+        range(0, 1): "#00ffff",
+        range(2, 3): "#00ff00",
+        range(3, 4): "#ffff00",
+        range(4, 5): "#ff8000",
+        range(5, 11): "#ff0000",
+        range(11, 10000): "#ff007f",
+    }
+    for k, v in colors.items():
+        if value in k:
+            return v
