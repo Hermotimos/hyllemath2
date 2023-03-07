@@ -52,4 +52,5 @@ class CachedFormfieldsFK:
 
 
 class CachedFormfieldsAll(CachedFormfieldsFK, CachedFormfieldsM2M):
+    """A utility class for joining the effects of its parent classes."""
     pass
