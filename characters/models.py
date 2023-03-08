@@ -106,6 +106,12 @@ class FirstName(Model):
     def __str__(self):
         return self.nominative
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Call related objects' save() methods to reevaluate fullname
+        for characterversion in self.characterversions.all():
+            characterversion.save()
+
 
 #  ------------------------------------------------------------
 
@@ -139,6 +145,13 @@ class FamilyName(Model):
 
     def __str__(self):
         return self.nominative
+
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Call related objects' save() methods to reevaluate fullname
+        for characterversion in self.characterversions.all():
+            characterversion.save()
 
 
 #  ------------------------------------------------------------
@@ -199,11 +212,15 @@ class CharacterVersion(Model):
     isalive = BooleanField(default=True)
     isalterego = BooleanField(default=False)
 
-    firstname = FK(FirstName, on_delete=PROTECT, blank=True, null=True)
-    familyname = FK(FamilyName, on_delete=PROTECT, blank=True, null=True)
+    firstname = FK(
+        FirstName, related_name='characterversions', on_delete=PROTECT,
+        blank=True, null=True)
+    familyname = FK(
+        FamilyName, related_name='characterversions', on_delete=PROTECT,
+        blank=True, null=True)
     nickname = CharField(max_length=50, blank=True, null=True)
     originname = CharField(max_length=50, blank=True, null=True)
-    fullname = CharField(max_length=100)
+    fullname = CharField(max_length=200) # redundantne, wygodniejsze od property
 
     strength = IntegerField(default=9, validators=min_max_validators(1,20), blank=True, null=True)
     dexterity = IntegerField(default=9, validators=min_max_validators(1,20), blank=True, null=True)
@@ -263,5 +280,3 @@ class Relationship(Model):
 
 
 #  ------------------------------------------------------------
-
-
