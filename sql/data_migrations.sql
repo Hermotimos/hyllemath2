@@ -427,12 +427,11 @@ inserted AS (
 	FROM imported JOIN characters_characterversion chv ON imported.known_character_id = chv.id
 	LEFT JOIN resources_picture pic ON pic.image = imported.knows_as_image
 	RETURNING *
-)
+) --SELECT * FROM inserted
 INSERT INTO characters_relationship (id, isdirect, character_id, characterversion_id)
 SELECT DISTINCT ON ((knowing_character_id, profileid, known_fullname)) nextval('characters_relationship_id_seq'), is_direct, profileid, ins.id
-FROM imported imp JOIN inserted ins ON imp.knows_as_name = ins.fullname
+FROM imported imp JOIN inserted ins ON imp.known_profileid = ins.character_id
 RETURNING *;
-
 
 
 
