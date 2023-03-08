@@ -229,6 +229,17 @@ class CharacterVersion(Model):
     experience = PositiveSmallIntegerField(blank=True, null=True)
     description = TextField(max_length=10000, blank=True, null=True)
 
+    # frequentedlocations = M2M(to=Location, related_name='characters', blank=True)
+    # biopackets = M2M(to=BiographyPacket, related_name='characters', blank=True)
+    # dialoguepackets = M2M(to=DialoguePacket, related_name='characters', blank=True)
+    # subprofessions = M2M(to=SubProfession, related_name='characters', blank=True)
+    # skilllevels = M2M(
+    #     to=SkillLevel,
+    #     through='Acquisition',
+    #     related_name='acquiring_characters',
+    #     blank=True)
+
+
     tags = M2M(CharacterVersionTag, related_name='characterversions', blank=True)
     _createdby = FK(
         User, related_name='createdcharacterversionss', on_delete=SET_NULL,
@@ -245,6 +256,8 @@ class CharacterVersion(Model):
         return f"{self.fullname} ({self.versionkind})"
 
     def save(self, *args, **kwargs):
+        # reevaluate fullname on each save;
+        # this is called by FirstName and FamilyName save() methods
         firstname, familyname, nickname, originname = (
             getattr(self.firstname, 'nominative', ""),
             getattr(self.familyname, 'nominative', ""),
@@ -253,8 +266,12 @@ class CharacterVersion(Model):
         )
         fullname = f"{firstname} {familyname} {nickname} {originname}"
         self.fullname = fullname.replace('  ', ' ').strip()
+
         super().save(*args, **kwargs)
 
+    # TODO
+    # def get_absolute_url(self):
+    #     return settings.BASE_URL + reverse('prosoponomikon:character', kwargs={'character_id' : self.id})
 
 
 class RelationshipManager(Manager):
