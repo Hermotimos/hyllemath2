@@ -16,7 +16,7 @@ from characters.models import (
     FirstName, FirstNameGroup, FirstNameTag
 )
 from myproject.utils_admin import (
-    CachedFormfieldsFK, CachedFormfieldsM2M, CachedFormfieldsAll,
+    CustomModelAdmin, CachedFormfieldsFKMixin, CachedFormfieldsAllMixin,
     get_count_color,
 )
 from myproject.utils_models import Tag
@@ -31,7 +31,7 @@ class TagAdminForm(ModelForm):
 
 
 @admin.register(FirstNameTag, FamilyNameTag)
-class TagGMAdmin(admin.ModelAdmin):
+class TagGMAdmin(CustomModelAdmin):
     fields = ['title', 'color']
     form = TagAdminForm
     list_display = ['id', 'title', 'color']
@@ -39,7 +39,7 @@ class TagGMAdmin(admin.ModelAdmin):
 
 
 @admin.register(CharacterVersionTag)
-class TagAdmin(admin.ModelAdmin):
+class TagAdmin(CustomModelAdmin):
     fields = ['user', 'title', 'color']
     form = TagAdminForm
     list_display = ['id', 'user', 'title', 'color']
@@ -49,14 +49,13 @@ class TagAdmin(admin.ModelAdmin):
 #  ------------------------------------------------------------
 
 
-class FirstNameInline(CachedFormfieldsAll, admin.TabularInline):
+class FirstNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
     model = FirstName
     extra = 10
     fields = [
         'nominative', 'genitive', 'gender', 'isarchaic', 'origin',
         'meaning', 'description', 'comments', 'equivalents', 'tags',
     ]
-    filter_horizontal = ['tags', 'equivalents']
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 14})},
         CharField: {'widget': TextInput(attrs={'size': 12})},
@@ -65,7 +64,7 @@ class FirstNameInline(CachedFormfieldsAll, admin.TabularInline):
 
 
 @admin.register(FirstNameGroup)
-class FirstNameGroupAdmin(CachedFormfieldsFK, admin.ModelAdmin):
+class FirstNameGroupAdmin(CustomModelAdmin):
     inlines = [FirstNameInline]
     list_display = ['id', 'title', 'parentgroup', 'description']
     list_editable = ['title', 'parentgroup', 'description']
@@ -78,7 +77,7 @@ class FirstNameGroupAdmin(CachedFormfieldsFK, admin.ModelAdmin):
 
 
 @admin.register(FirstName)
-class FirstNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
+class FirstNameAdmin(CustomModelAdmin):
     fieldsets = [
         (None, {
             'fields': (
@@ -90,7 +89,6 @@ class FirstNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
             ),
         }),
     ]
-    filter_horizontal = ['tags', 'equivalents']
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 20})},
         CharField: {'widget': TextInput(attrs={'size': 10})},
@@ -114,14 +112,13 @@ class FirstNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
 
 
 
-class FamilyNameInline(CachedFormfieldsAll, admin.TabularInline):
+class FamilyNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
     model = FamilyName
     extra = 5
     fields = [
         'origin', 'nominative', 'nominative_pl', 'genitive',
         'genitive_pl', 'description', 'tags',
     ]
-    filter_horizontal = ['tags']
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 14})},
         CharField: {'widget': TextInput(attrs={'size': 12})},
@@ -135,15 +132,14 @@ class FamilyNameInline(CachedFormfieldsAll, admin.TabularInline):
 
 
 @admin.register(FamilyNameGroup)
-class FamilyNameGroupAdmin(admin.ModelAdmin):
+class FamilyNameGroupAdmin(CustomModelAdmin):
     inlines = [FamilyNameInline]
     list_display = ['id', 'title', 'description']
     list_editable = ['title', 'description']
 
 
 @admin.register(FamilyName)
-class FamilyNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
-    filter_horizontal = ['tags']
+class FamilyNameAdmin(CustomModelAdmin):
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
         CharField: {'widget': TextInput(attrs={'size': 15})},
@@ -168,7 +164,7 @@ class FamilyNameAdmin(CachedFormfieldsFK, admin.ModelAdmin):
 #  ------------------------------------------------------------
 
 
-class RelationshipInlineForCharacter(CachedFormfieldsFK, admin.TabularInline):
+class RelationshipInlineForCharacter(CachedFormfieldsFKMixin, admin.TabularInline):
     """
     An inline for handling Relationships from Character's perspective.
     That is - which CharacterVersions this Character knows.
@@ -180,7 +176,7 @@ class RelationshipInlineForCharacter(CachedFormfieldsFK, admin.TabularInline):
 
 
 @admin.register(Character)
-class CharacterAdmin(CachedFormfieldsFK, admin.ModelAdmin):
+class CharacterAdmin(CustomModelAdmin):
     fields = ['user', '_createdat']
     inlines = [RelationshipInlineForCharacter]
     list_display = [
@@ -196,9 +192,11 @@ class CharacterAdmin(CachedFormfieldsFK, admin.ModelAdmin):
         qs = qs.annotate(main_characterversion=Max('characterversions__fullname'))
         return qs
 
+    @admin.display(description="Character Versions")
     def main_characterversion(self, obj):
         return obj.main_characterversion
 
+    @admin.display(description="Main Character Version")
     def get_related_characterversions(self, obj):
         if count := obj.characterversions.count():
             url = (
@@ -211,12 +209,9 @@ class CharacterAdmin(CachedFormfieldsFK, admin.ModelAdmin):
             return format_html(html, url, color, count)
         return "-"
 
-    main_characterversion.short_description = "Main Character Version "
-    get_related_characterversions.short_description = "Character Versions"
 
 
-
-class RelationshipInlineForCharacterVersion(CachedFormfieldsAll, admin.TabularInline):
+class RelationshipInlineForCharacterVersion(CachedFormfieldsFKMixin, admin.TabularInline):
     """
     An inline for handling Relationships from CharacterVersion's perspective.
     That is - which Characters know this CharacterVersion.
@@ -229,7 +224,7 @@ class RelationshipInlineForCharacterVersion(CachedFormfieldsAll, admin.TabularIn
 
 
 @admin.register(CharacterVersion)
-class CharacterVersionAdmin(CachedFormfieldsFK, admin.ModelAdmin):
+class CharacterVersionAdmin(CustomModelAdmin):
     fieldsets = [
         (None, {
             'fields': (
@@ -239,11 +234,10 @@ class CharacterVersionAdmin(CachedFormfieldsFK, admin.ModelAdmin):
                 'description',
                 ('strength', 'dexterity', 'endurance', 'power',),
                 'experience',
-                'tags'
+                'tags',
             )
         }),
     ]
-    filter_horizontal = ['tags']
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
         CharField: {'widget': TextInput(attrs={'size': 15})},
@@ -264,7 +258,7 @@ class CharacterVersionAdmin(CachedFormfieldsFK, admin.ModelAdmin):
     ]
     list_per_page = 50
     readonly_fields = [
-        'fullname', '_createdat'
+        'fullname', '_createdat',
     ]
     search_fields = ['fullname']
 
@@ -273,6 +267,7 @@ class CharacterVersionAdmin(CachedFormfieldsFK, admin.ModelAdmin):
             'all': (f'{settings.STATIC_URL}css/admin_change_form_characterversion.css',)
         }
 
+    @admin.display(description="Image")
     def get_img(self, obj):
         if obj.picture:
             return format_html(
@@ -280,4 +275,3 @@ class CharacterVersionAdmin(CachedFormfieldsFK, admin.ModelAdmin):
         return format_html(
             '<img src="media/profile_pics/profile_default.jpg" width="70" height="70">')
 
-    get_img.short_description = "Image"

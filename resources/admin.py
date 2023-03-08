@@ -16,6 +16,7 @@ class PictureAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         return qs.prefetch_related('characterversions')
 
+    @admin.display(description="Character Versions")
     def get_related_characterversions(self, obj):
         if count := obj.characterversions.count():
             url = (
@@ -27,8 +28,6 @@ class PictureAdmin(admin.ModelAdmin):
             html = '<a href="{}" style="border: 1px solid; padding: 2px 3px; color: {};">{}</a>'
             return format_html(html, url, color, count)
         return "-"
-
-    get_related_characterversions.short_description = "Character Versions"
 
     # TODO: podobne dodatkowe pola z linkiem dla innych obiektów z picture:
     #  (PictureVersion, PictureSet) - metoda, nadpiska nazwy, prefetch
