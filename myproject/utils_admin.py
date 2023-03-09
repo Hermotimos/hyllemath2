@@ -66,18 +66,7 @@ class CachedFormfieldsAllMixin(CachedFormfieldsFKMixin, CachedFormfieldsM2MMixin
     pass
 
 
-class FilterHorizontalMixin:
-    """A mixin for including all M2M fields in ModelAdmin.filter_horizontal."""
-    filter_horizontal = []
-
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        formfield = super().formfield_for_manytomany(db_field, request, **kwargs)
-        self.filter_horizontal = (*self.filter_horizontal, db_field.name)
-        return formfield
-
-
-
-class CustomModelAdmin(FilterHorizontalMixin, CachedFormfieldsAllMixin, ModelAdmin):
+class CustomModelAdmin(CachedFormfieldsAllMixin, ModelAdmin):
     """
     A class to encapsulate some reapeating code for optimizations of
     ModelAdmin FK and M2M formfields queries and other utilities,

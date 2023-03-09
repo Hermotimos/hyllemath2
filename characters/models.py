@@ -19,10 +19,12 @@ from users.models import User
 
 
 class FirstNameTag(Tag):
+    # add unique constraint as this is for GM use only
     title = CharField(max_length=50, unique=True)
 
 
 class FamilyNameTag(Tag):
+    # add unique constraint as this is for GM use only
     title = CharField(max_length=50, unique=True)
 
 

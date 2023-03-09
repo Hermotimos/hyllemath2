@@ -19,15 +19,15 @@ from myproject.utils_admin import (
     CustomModelAdmin, CachedFormfieldsFKMixin, CachedFormfieldsAllMixin,
     get_count_color,
 )
-from myproject.utils_models import Tag
 
 
 class TagAdminForm(ModelForm):
 
-    class Meta:
-        model = Tag
-        exclude = []
-        widgets = {'color': TextInput(attrs={'type': 'color'})}
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # add widget for a field identified by name
+        # it can be done in Meta, but then fields/exclude must be defined
+        self.fields['color'].widget = TextInput(attrs={'type': 'color'})
 
 
 @admin.register(FirstNameTag, FamilyNameTag)
@@ -50,8 +50,9 @@ class TagAdmin(CustomModelAdmin):
 
 
 class FirstNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
+    filter_horizontal = ['tags', 'equivalents']
     model = FirstName
-    extra = 10
+    extra = 5
     fields = [
         'nominative', 'genitive', 'gender', 'isarchaic', 'origin',
         'meaning', 'description', 'comments', 'equivalents', 'tags',
@@ -61,6 +62,10 @@ class FirstNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
         CharField: {'widget': TextInput(attrs={'size': 12})},
         ForeignKey: {'widget': Select(attrs={'style': 'width:120px'})},
     }
+
+    def __init__(self, parent_model, admin_site, *args, **kwargs):
+        super().__init__(parent_model, admin_site, *args, **kwargs)
+        # print(self.filter_horizontal)
 
 
 @admin.register(FirstNameGroup)
@@ -89,6 +94,7 @@ class FirstNameAdmin(CustomModelAdmin):
             ),
         }),
     ]
+    filter_horizontal = ['equivalents', 'tags']
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 20})},
         CharField: {'widget': TextInput(attrs={'size': 10})},
@@ -113,6 +119,7 @@ class FirstNameAdmin(CustomModelAdmin):
 
 
 class FamilyNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
+    filter_horizontal = ['tags']
     model = FamilyName
     extra = 5
     fields = [
@@ -140,6 +147,7 @@ class FamilyNameGroupAdmin(CustomModelAdmin):
 
 @admin.register(FamilyName)
 class FamilyNameAdmin(CustomModelAdmin):
+    filter_horizontal = ['tags']
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
         CharField: {'widget': TextInput(attrs={'size': 15})},
@@ -238,6 +246,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
             )
         }),
     ]
+    filter_horizontal = ['tags']
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
         CharField: {'widget': TextInput(attrs={'size': 15})},
@@ -257,6 +266,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
         'strength', 'dexterity', 'endurance', 'power', 'experience',
     ]
     list_per_page = 50
+    radio_fields =  {"versionkind": admin.VERTICAL}
     readonly_fields = [
         'fullname', '_createdat',
     ]
