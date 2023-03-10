@@ -5,6 +5,7 @@ from django.db.models import (
     IntegerField, PositiveSmallIntegerField, TextField, BooleanField,
     ManyToManyField as M2M,
 )
+from django.db.models.functions import Collate
 from django.utils.html import format_html
 
 from resources.models import Picture
@@ -244,7 +245,7 @@ class CharacterVersion(Model):
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["fullname", "versionkind"]
+        ordering = [Collate('fullname', 'pl-PL-x-icu'), "versionkind"]
         unique_together = [
             ['character', 'picture', 'versionkind', 'fullname'],
         ]
@@ -294,3 +295,16 @@ class Relationship(Model):
 
 
 #  ------------------------------------------------------------
+
+
+# TODO
+#   1) zrobić logikę widoków, gdzie Prosoponomikon prezentuje Graczowi tę
+#      "największą" CharacterVersion należąca do danego Character:
+#           - weź wszystkie znane CharacterVersion,
+#           - weź ich Character i zrób listę DISTINCT ON (character_id, isalterego)
+#               (czyli gdy nie chodzi o zakres znajomości, a o "drugą tożsamość")
+#           - z każdego Character weź te CharacterVersion, która Gracz zna
+#           - z nich weź "największą": DEAD > MAIN > CHANGED > PARTIAL > PAST > BYPLAYER
+#           - i tę zaprezentuj w widoku listy (Prosoponomikon main)
+#   2) dla widoku detail prezentować wszystkie wersje, które się różnią:
+#      description, picture (inne różnice to updaty wiedzy: imię itp.)
