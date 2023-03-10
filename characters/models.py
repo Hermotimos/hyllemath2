@@ -2,7 +2,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
     CASCADE, PROTECT, SET_NULL, SET_DEFAULT, TextChoices, Model, Manager, F,
     CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField,
-    IntegerField, PositiveSmallIntegerField, TextField, BooleanField, ManyToManyField as M2M
+    IntegerField, PositiveSmallIntegerField, TextField, BooleanField,
+    ManyToManyField as M2M,
 )
 from django.utils.html import format_html
 
@@ -10,12 +11,8 @@ from resources.models import Picture
 from myproject.utils_models import Tag, get_gamemaster, min_max_validators
 from users.models import User
 
-# TODO: add absolute_url when applicable
-
 
 #  ------------------------------------------------------------
-
-# Tags
 
 
 class FirstNameTag(Tag):
@@ -29,9 +26,7 @@ class FamilyNameTag(Tag):
 
 
 class CharacterVersionTag(Tag):
-    user = FK(
-        User, related_name='characterversiontags', on_delete=CASCADE,
-        blank=True, null=True)
+    user = FK(User, related_name='characterversiontags', on_delete=CASCADE)
 
     class Meta:
         ordering = [

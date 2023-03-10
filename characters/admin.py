@@ -45,6 +45,10 @@ class TagAdmin(CustomModelAdmin):
     list_display = ['id', 'user', 'title', 'color']
     list_editable = fields
 
+    def get_changeform_initial_data(self, request):
+        # Set user FK field to the requesting user in 'add form'.
+        return {'user': request.user}
+
 
 #  ------------------------------------------------------------
 
@@ -62,10 +66,6 @@ class FirstNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
         CharField: {'widget': TextInput(attrs={'size': 12})},
         ForeignKey: {'widget': Select(attrs={'style': 'width:120px'})},
     }
-
-    def __init__(self, parent_model, admin_site, *args, **kwargs):
-        super().__init__(parent_model, admin_site, *args, **kwargs)
-        # print(self.filter_horizontal)
 
 
 @admin.register(FirstNameGroup)
@@ -218,6 +218,8 @@ class CharacterAdmin(CustomModelAdmin):
         return "-"
 
 
+#  ------------------------------------------------------------
+
 
 class RelationshipInlineForCharacterVersion(CachedFormfieldsFKMixin, admin.TabularInline):
     """
@@ -236,7 +238,8 @@ class CharacterVersionAdmin(CustomModelAdmin):
     fieldsets = [
         (None, {
             'fields': (
-                ('character', 'fullname', 'picture'),
+                ('character', 'picture'),
+                'fullname',
                 ('versionkind', 'isalive', 'isalterego',),
                 ('firstname', 'familyname', 'nickname', 'originname',),
                 'description',
@@ -276,6 +279,21 @@ class CharacterVersionAdmin(CustomModelAdmin):
         css = {
             'all': (f'{settings.STATIC_URL}css/admin_change_form_characterversion.css',)
         }
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        # Show only tags created by GMs
+        if db_field.name == "tags":
+            kwargs["queryset"] = CharacterVersionTag.objects.filter(
+                user__is_staff=True
+            )
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    def get_formsets_with_inlines(self, request, obj=None):
+        # hide all inlines in the add view, see get_formsets_with_inlines:
+        # https://docs.djangoproject.com/en/4.1/ref/contrib/admin/
+        for inline in self.get_inline_instances(request, obj):
+            if obj is not None:
+                yield inline.get_formset(request, obj), inline
 
     @admin.display(description="Image")
     def get_img(self, obj):

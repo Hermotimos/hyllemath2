@@ -17,7 +17,9 @@ class Tag(Model):
 
 
 def get_gamemaster() -> str:
-    return User.objects.filter(is_superuser=True).first().id
+    default_gamemaster = User.objects.filter(
+        is_superuser=True, username="Łukasz").first().id
+    return default_gamemaster
 
 
 def min_max_validators(min: int, max: int) -> list:
