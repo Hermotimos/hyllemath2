@@ -12,7 +12,6 @@ from django.shortcuts import redirect, render
 
 # from prosoponomikon.forms import CharacterForm
 # from prosoponomikon.models import Character, FirstName
-# from rpg_project.utils import sample_from_qs, auth_profile
 from users.forms import UserRegistrationForm, UserUpdateForm, UserImageUpdateForm
 # from users.models import Profile
 
@@ -26,7 +25,11 @@ class CustomLoginView(LoginView):
     def form_valid(self, form):
         user = form.get_user()
         login(self.request, user)
-        # self.request.session['profile_id'] = get_profile(user).id
+
+        # provide 'character_id' to session
+        user_current_character = user.characters.order_by('-_createdat').first()
+        self.request.session['character_id'] = user_current_character.id
+
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
