@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+<!--
+    {% block head_extra %}
+        <link rel="stylesheet" href="{% static 'css/prosoponomikon.css' %}">
+    {% endblock head_extra %}
+-->
+
+
+{% block content %}
+
+    {% for characterversion in characterversions %}
+        {{ characterversion.fullname }}<br>
+
+    {% endfor %}
+
+
+{% endblock content %}

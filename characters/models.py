@@ -1,9 +1,11 @@
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
     CASCADE, PROTECT, SET_NULL, SET_DEFAULT, TextChoices, Model, Manager, F,
     CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField,
     IntegerField, PositiveSmallIntegerField, TextField, BooleanField,
-    ManyToManyField as M2M,
+    ManyToManyField as M2M, Index
 )
 from django.db.models.functions import Collate
 from django.utils.html import format_html
@@ -166,6 +168,9 @@ class Character(Model):
     objects = CharacterManager()
 
     user = FK(User, related_name='characters', default=get_gamemaster, on_delete=CASCADE)
+    # TODO być może dodać pole techniczne "mainname"
+    # uzupełniać je w save() CharacterVersion: jeśli versionkind = MAIN to
+    # self.character.mainname = self.fullname, self.character.save()
     relationships = M2M(
         'CharacterVersion', through='Relationship',
         related_name='known_by_characters', blank=True)
@@ -185,6 +190,39 @@ class CharacterVersionManager(Manager):
             'picture', 'firstname', 'familyname', '_createdby',
         )
         return qs
+
+
+class KnowledgeManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related('character__user')
+        return qs
+
+
+class Knowledge(Model):
+    objects = KnowledgeManager()
+
+    # technical fields of Generic relations
+    content_type = FK(ContentType, related_name='characters', on_delete=CASCADE)
+    object_id = PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    character = FK(Character, related_name='knowledges', on_delete=PROTECT)
+    isdirect = BooleanField(default=False)
+    identifiedwith = ArrayField(PositiveIntegerField(), blank=True, null=True)
+    # TODO identifiedwith is for overriding DISTINCT ON (character_id, isalterego) in player's view
+
+    class Meta:
+        indexes = [
+            Index(fields=["content_type", "object_id"]),
+            # Index(fields=["character"]),  # TODO sprawdzić czy już nie ma z defaultu
+        ]
+
+    def __str__(self):
+        return f"{self.character} -> {self.content_object}"
+
+
+#  ------------------------------------------------------------
 
 
 class CharacterVersion(Model):
@@ -227,6 +265,8 @@ class CharacterVersion(Model):
     power = IntegerField(default=0, validators=min_max_validators(0,20), blank=True, null=True)
     experience = PositiveSmallIntegerField(blank=True, null=True)
     description = TextField(max_length=10000, blank=True, null=True)
+
+    knowledges = GenericRelation(Knowledge)
 
     # frequentedlocations = M2M(to=Location, related_name='characters', blank=True)
     # biopackets = M2M(to=BiographyPacket, related_name='characters', blank=True)
@@ -310,3 +350,6 @@ class Relationship(Model):
 #           - i tę zaprezentuj w widoku listy (Prosoponomikon main)
 #   2) dla widoku detail prezentować wszystkie wersje, które się różnią:
 #      description, picture (inne różnice to updaty wiedzy: imię itp.)
+
+
+#  ------------------------------------------------------------

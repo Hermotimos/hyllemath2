@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.contenttypes.admin import GenericTabularInline
 from django.db.models import TextField, CharField, ForeignKey, Max
 from django.forms import ModelForm, Select, Textarea, TextInput
 from django.utils.html import format_html
@@ -12,7 +13,8 @@ from characters.models import (
     Character,  Relationship,
     CharacterVersion, CharacterVersionTag,
     FamilyName, FamilyNameGroup, FamilyNameTag,
-    FirstName, FirstNameGroup, FirstNameTag
+    FirstName, FirstNameGroup, FirstNameTag,
+    Knowledge,
 )
 from myproject.utils_admin import (
     CustomModelAdmin, CachedFormfieldsFKMixin, CachedFormfieldsAllMixin,
@@ -179,7 +181,7 @@ class RelationshipInlineForCharacter(CachedFormfieldsFKMixin, admin.TabularInlin
     handling Characters who know this CharacterVersion.
     """
     model = Relationship
-    fk_name = 'character'
+    # fk_name = 'character'
 
 
 @admin.register(Character)
@@ -187,7 +189,7 @@ class CharacterAdmin(CustomModelAdmin):
     fields = ['user', '_createdat']
     inlines = [RelationshipInlineForCharacter]
     list_display = [
-        'id', 'main_characterversion', 'user', 'get_related_characterversions',
+        'main_characterversion', 'user', 'get_related_characterversions',
         '_createdat',
     ]
     list_editable = ['user']
@@ -199,11 +201,11 @@ class CharacterAdmin(CustomModelAdmin):
         qs = qs.annotate(main_characterversion=Max('characterversions__fullname'))
         return qs
 
-    @admin.display(description="Character Versions")
+    @admin.display(description="Main Character Version")
     def main_characterversion(self, obj):
         return obj.main_characterversion
 
-    @admin.display(description="Main Character Version")
+    @admin.display(description="Character Versions")
     def get_related_characterversions(self, obj):
         if count := obj.characterversions.count():
             url = (
@@ -220,6 +222,11 @@ class CharacterAdmin(CustomModelAdmin):
 #  ------------------------------------------------------------
 
 
+class KnowledgeInline(CachedFormfieldsFKMixin, GenericTabularInline):
+    model = Knowledge
+    # fk_name = 'character'
+
+
 class RelationshipInlineForCharacterVersion(CachedFormfieldsFKMixin, admin.TabularInline):
     """
     An inline for handling Relationships from CharacterVersion's perspective.
@@ -228,7 +235,7 @@ class RelationshipInlineForCharacterVersion(CachedFormfieldsFKMixin, admin.Tabul
     handling CharacterVersions known by this Character .
     """
     model = CharacterVersion.known_by_characters.through
-    fk_name = 'characterversion'
+    # fk_name = 'characterversion'
     extra = 2
 
 
@@ -254,7 +261,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
         CharField: {'widget': TextInput(attrs={'size': 15})},
         ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
     }
-    inlines = [RelationshipInlineForCharacterVersion]
+    inlines = [KnowledgeInline, RelationshipInlineForCharacterVersion]
     list_display = [
         'get_img', 'fullname', 'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',

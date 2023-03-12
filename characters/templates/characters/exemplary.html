@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+<!--
+    {% block head_extra %}
+        <link rel="stylesheet" href="{% static 'css/prosoponomikon.css' %}">
+    {% endblock head_extra %}
+-->
+
+
+{% block content %}
+
+    {% for knowledge in knowledges %}
+        {{ knowledge.character.user.username }}<br>
+
+        {{ knowledge.content_object.fullname }}<br>
+        {{ knowledge.content_object.picture }}<br>
+        {{ knowledge.content_object.tags.all }}<br>
+
+    {% endfor %}
+
+
+{% endblock content %}
