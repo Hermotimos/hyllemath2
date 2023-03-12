@@ -1,0 +1,7 @@
+
+div.related-widget-wrapper > select {display: block;}
+
+textarea[name="description"] {
+    width: 50rem;
+    height: 10rem;
+}

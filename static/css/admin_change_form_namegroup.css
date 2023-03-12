@@ -1,0 +1,27 @@
+
+
+
+.selector select {
+    height: 7em;
+    width: 15em;
+}
+
+.selector .selector-available input {
+    width: 11em;
+
+}
+
+select[multiple] {min-height: 7em}
+
+.selector-available, .selector-chosen {
+    width: 15em;
+}
+
+div.selector {width: 420px;}
+
+td[class^="field-"] {
+    padding-left: 0.1rem;
+    /* padding-right: 0; */
+}
+
+p label[for^="id_firstnames-0"] {display: none;}

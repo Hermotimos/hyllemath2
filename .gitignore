@@ -14,13 +14,9 @@ cors.json
 .env
 
 
-static
-!static/css
-!static/files
-!static/fonts
-!static/img
-!static/js
-!static/Fontello ADD ICONS.txt
+static/admin/
+static/debug_toolbar/
+
 
 media
 _local_snippets/
