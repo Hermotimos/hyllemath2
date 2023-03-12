@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib import admin
 from django.db.models import TextField, CharField, ForeignKey, Max
 from django.forms import ModelForm, Select, Textarea, TextInput
@@ -77,7 +76,7 @@ class FirstNameGroupAdmin(CustomModelAdmin):
 
     class Media:
         css = {
-            'all': (f'{settings.STATIC_URL}css/admin_change_form_namegroup.css',)
+            'all': ('admin_change_form_namegroup.css',)
         }
 
 
@@ -134,7 +133,7 @@ class FamilyNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
 
     class Media:
         css = {
-            'all': (f'{settings.STATIC_URL}css/admin_change_form_namegroup.css',)
+            'all': ('admin_change_form_namegroup.css',)
         }
 
 
@@ -277,7 +276,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
 
     class Media:
         css = {
-            'all': (f'{settings.STATIC_URL}css/admin_change_form_characterversion.css',)
+            'all': ('admin_change_form_characterversion.css',)
         }
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
