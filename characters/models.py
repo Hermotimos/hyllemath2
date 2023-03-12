@@ -207,6 +207,7 @@ class CharacterVersion(Model):
     versionkind = CharField(
         max_length=15, choices=CharacterVersionKind.choices,
         default=CharacterVersionKind.MAIN)
+    comment = TextField(max_length=1000, blank=True, null=True)
     isalive = BooleanField(default=True)
     isalterego = BooleanField(default=False)
 

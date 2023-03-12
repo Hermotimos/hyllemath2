@@ -240,7 +240,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
             'fields': (
                 ('character', 'picture'),
                 'fullname',
-                ('versionkind', 'isalive', 'isalterego',),
+                ('comment', 'versionkind', 'isalive', 'isalterego'),
                 ('firstname', 'familyname', 'nickname', 'originname',),
                 'description',
                 ('strength', 'dexterity', 'endurance', 'power',),
@@ -297,9 +297,9 @@ class CharacterVersionAdmin(CustomModelAdmin):
 
     @admin.display(description="Image")
     def get_img(self, obj):
+        img = '<img src="{}" width="70" height="70">'
+        comment = '<br><span style="color: red; font-weight: normal; font-style: italic;">{}</span>'
+        html = img + comment if obj.comment else img
         if obj.picture:
-            return format_html(
-                f'<img src="{obj.picture.image.url}" width="70" height="70">')
-        return format_html(
-            '<img src="media/profile_pics/profile_default.jpg" width="70" height="70">')
-
+            return format_html(html, obj.picture.image.url, obj.comment)
+        return format_html(html, "media/profile_pics/profile_default.jpg", obj.comment)

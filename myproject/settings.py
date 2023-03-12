@@ -109,6 +109,7 @@ INSTALLED_APPS = [
     "resources",
     "users",
     "characters",
+    "locations",
 ]
 
 MIDDLEWARE = [

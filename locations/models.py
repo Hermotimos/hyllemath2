@@ -127,6 +127,7 @@ class LocationVersion(Model):
     location = FK(Location, related_name='locationversions', on_delete=PROTECT)
     # TODO: czy tu paketyzacja?
     description = TextField(blank=True, null=True)
+    comment = TextField(max_length=1000, blank=True, null=True)
     mainpicture = FK(
         to=Picture, related_name='locationversions', on_delete=PROTECT,
         blank=True, null=True)
