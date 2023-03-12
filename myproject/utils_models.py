@@ -17,8 +17,7 @@ class Tag(Model):
 
 
 def get_gamemaster() -> str:
-    default_gamemaster = User.objects.filter(
-        is_superuser=True, username="Łukasz").first().id
+    default_gamemaster = User.objects.filter(is_superuser=True).last().id
     return default_gamemaster
 
 

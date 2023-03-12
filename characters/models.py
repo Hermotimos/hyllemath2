@@ -99,7 +99,7 @@ class FirstName(Model):
     comments = TextField(max_length=10000, blank=True, null=True)
 
     class Meta:
-        ordering = ["nominative"]
+        ordering = [Collate('nominative', 'pl-PL-x-icu')]
 
     def __str__(self):
         return self.nominative
@@ -286,6 +286,7 @@ class Relationship(Model):
     characterversion = FK(CharacterVersion, on_delete=PROTECT)
     isdirect = BooleanField(default=False)
     identifiedwith = ArrayField(PositiveIntegerField(), blank=True, null=True)
+    # TODO identifiedwith is for overriding DISTINCT ON (character_id, isalterego) in player's view
 
     class Meta:
         unique_together = ['character', 'characterversion']
