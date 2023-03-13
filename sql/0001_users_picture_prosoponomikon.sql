@@ -44,6 +44,9 @@ AS imported(
   last_login timestamptz, date_joined timestamptz,
   is_superuser boolean, is_staff boolean, is_active boolean, is_spectator boolean);
 
+SELECT setval('users_user_id_seq', 1 + (SELECT MAX(id) FROM users_user));
+
+
 /* TODO
   1) User.picture - add manually
   2) superuser stworzony pierwotnie w tej bazie - do usunięcia (pewnie 'lukasz' albo 'lukas')
@@ -92,6 +95,8 @@ SELECT * FROM dblink(
     WHERE loc.name IS NOT NULL
   $$)
 AS imported(social_info text, color TEXT);
+
+SELECT setval('characters_firstnametag_id_seq', 1 + (SELECT MAX(id) FROM characters_firstnametag));
 
 
 
@@ -146,7 +151,7 @@ SELECT * FROM dblink(
   $$)
 AS imported(id int, from_firstname_id int, to_firstname_id int);
 
-
+SELECT setval('characters_firstname_equivalents_id_seq', 1 + (SELECT MAX(id) FROM characters_firstname_equivalents));
 
 
 -- FK AuxiliaryNameGroup + FirstName ==> FirstNameTag + FirstName
@@ -172,7 +177,7 @@ FROM dblink(
 AS imported(firstname_id int, tag_title text)
 JOIN characters_firstnametag fnt ON imported.tag_title = fnt.title;
 
-
+SELECT setval('characters_firstname_tags_id_seq', 1 + (SELECT MAX(id) FROM characters_firstname_tags));
 
 
 -- ==================================================================================
@@ -190,6 +195,7 @@ SELECT * FROM dblink(
   $$)
 AS imported(id int, title text, description TEXT);
 
+SELECT setval('characters_familynamegroup_id_seq', 1 + (SELECT MAX(id) FROM characters_familynamegroup));
 
 
 
@@ -209,6 +215,7 @@ INSERT INTO characters_familynametag (title, color)
 SELECT DISTINCT locationname, '#000000'
 FROM familyname_locations;
 
+SELECT setval('characters_familynametag_id_seq', 1 + (SELECT MAX(id) FROM characters_familynametag));
 
 
 
@@ -280,6 +287,7 @@ FROM dblink(
 JOIN characters_familynametag fnt ON fnt.title = imported.locationname
 JOIN characters_familyname fn ON fn.nominative = imported.familyname;
 
+SELECT setval('characters_familyname_tags_id_seq', 1 + (SELECT MAX(id) FROM characters_familyname_tags));
 
 
 
@@ -337,10 +345,9 @@ SELECT characterid, profileid, '2. MAIN', is_alive, FALSE, first_name_id, family
 FROM imported
 LEFT JOIN ins_pictures pic ON pic.image = imported.image;      -- LEFT dla postaci bez obrazka: utworzone przez graczy lub niedokończone
 
-
 SELECT setval('characters_character_id_seq', 1 + (SELECT MAX(id) FROM characters_character));
 SELECT setval('characters_characterversion_id_seq', 1 + (SELECT MAX(id) FROM characters_characterversion));
-
+SELECT setval('resources_picture_id_seq', 1 + (SELECT MAX(id) FROM resources_picture));
 
 
 
@@ -381,7 +388,6 @@ FROM dblink(
   id int, is_direct boolean, knowing_character_id int, known_character_id int,
   characterid int, profileid int, fullname text);
 
-
 SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters_knowledge));
 
 
@@ -402,6 +408,8 @@ FROM dblink(
   $$)
   AS imported(knows_as_image TEXT)
 ON CONFLICT (title) DO NOTHING;
+
+SELECT setval('resources_picture_id_seq', 1 + (SELECT MAX(id) FROM resources_picture));
 
 
 
@@ -455,6 +463,9 @@ SELECT DISTINCT ON ((knowing_character_id, profileid, known_fullname))
 FROM imported imp JOIN inserted ins ON imp.known_profileid = ins.character_id
 RETURNING *;
 
+SELECT setval('characters_characterversion_id_seq', 1 + (SELECT MAX(id) FROM characters_characterversion));
+
+
 
 
 -- Acquaitanceship ==> Knowledge (player-created) 3
@@ -486,7 +497,6 @@ UPDATE characters_characterversion c
 SET versionkind = '6. BYPLAYER'
 FROM inserted
 WHERE c.id = inserted.object_id;
-
 
 SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters_knowledge));
 
