@@ -342,10 +342,15 @@ IMPORTANT:
 
 -- all 9143 minus GM 395 = 9748
 
--- Acquaitanceship ==> Relationship (non-AKA) 8727
+-- Acquaitanceship ==> Knowledge (non-AKA) 8727
 
-INSERT INTO characters_relationship (id, isdirect, character_id, characterversion_id)
-SELECT id, is_direct, profileid, known_character_id
+WITH contenttype AS (
+	SELECT id FROM django_content_type
+	WHERE model = 'characterversion'
+	LIMIT 1
+)
+INSERT INTO characters_knowledge (id, isdirect, character_id, object_id, content_type_id)
+SELECT id, is_direct, profileid, known_character_id, (SELECT id FROM contenttype)
 FROM dblink(
 	'hyllemath',
 	$$
@@ -354,7 +359,7 @@ FROM dblink(
 		FROM prosoponomikon_acquaintanceship a
 		JOIN prosoponomikon_character knowing ON knowing.id = knowing_character_id
 		JOIN prosoponomikon_character known ON known.id = known_character_id
-		WHERE knowing.profile_id != 1																		-- nie rób Relationship dla MG
+		WHERE knowing.profile_id != 1																		-- nie rób Knowledge dla MG
 			AND known.created_by_id IS NULL															-- odfiltruj player-created
 			AND (a.knows_as_name = '') IS NOT FALSE 									-- odfiltruj "AKA" (te gdzie nie-null i nie '')
 			AND (a.knows_as_description = '') IS NOT FALSE
@@ -365,12 +370,12 @@ FROM dblink(
 	characterid int, profileid int, fullname text);
 
 
-SELECT setval('characters_relationship_id_seq', 1 + (SELECT MAX(id) FROM characters_relationship));
+SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters_knowledge));
 
 
 
 
--- Acquaitanceship AKA ==> Relationship + CharacterVersion(for AKA) 18
+-- Acquaitanceship AKA ==> Knowledge + CharacterVersion(for AKA) 18
 
 
 -- Create Picture objects for AKA with alternative pics
@@ -388,7 +393,11 @@ ON CONFLICT (title) DO NOTHING;
 
 
 
-WITH
+WITH contenttype AS (
+	SELECT id FROM django_content_type
+	WHERE model = 'characterversion'
+	LIMIT 1
+),
 imported AS (
 	SELECT * --id, is_direct, profileid, known_character_id
 	FROM dblink(
@@ -401,7 +410,7 @@ imported AS (
 			FROM prosoponomikon_acquaintanceship a
 			JOIN prosoponomikon_character knowing ON knowing.id = knowing_character_id
 			JOIN prosoponomikon_character known ON known.id = known_character_id
-			WHERE knowing.profile_id != 1																															-- nie rób Relationship dla MG
+			WHERE knowing.profile_id != 1																															-- nie rób Knowledge dla MG
 				AND known.created_by_id IS NULL																													-- odfiltruj player-created
 				AND (a.knows_as_name != '' OR a.knows_as_description != '' OR a.knows_as_image != '' ) 	-- weź tylko "AKA" (te gdzie nie-null i nie '')
 		$$)
@@ -428,18 +437,23 @@ inserted AS (
 	LEFT JOIN resources_picture pic ON pic.image = imported.knows_as_image
 	RETURNING *
 ) --SELECT * FROM inserted
-INSERT INTO characters_relationship (id, isdirect, character_id, characterversion_id)
-SELECT DISTINCT ON ((knowing_character_id, profileid, known_fullname)) nextval('characters_relationship_id_seq'), is_direct, profileid, ins.id
+INSERT INTO characters_knowledge (id, isdirect, character_id, object_id, content_type_id)
+SELECT DISTINCT ON ((knowing_character_id, profileid, known_fullname))
+	nextval('characters_knowledge_id_seq'), is_direct, profileid, ins.id, (SELECT id FROM contenttype)
 FROM imported imp JOIN inserted ins ON imp.known_profileid = ins.character_id
 RETURNING *;
 
 
 
--- Acquaitanceship ==> Relationship (player-created) 3
+-- Acquaitanceship ==> Knowledge (player-created) 3
 
-WITH inserted AS (
-	INSERT INTO characters_relationship (id, isdirect, character_id, characterversion_id)
-	SELECT id, is_direct, createdbyid, known_character_id
+WITH contenttype AS (
+	SELECT id FROM django_content_type
+	WHERE model = 'characterversion'
+	LIMIT 1
+), inserted AS (
+	INSERT INTO characters_knowledge (id, isdirect, character_id, object_id, content_type_id)
+	SELECT id, is_direct, createdbyid, known_character_id, (SELECT id FROM contenttype)
 	FROM dblink(
 		'hyllemath',
 		$$
@@ -449,7 +463,7 @@ WITH inserted AS (
 			JOIN prosoponomikon_character knowing ON knowing.id = knowing_character_id
 			JOIN prosoponomikon_character known ON known.id = known_character_id
 			WHERE known.created_by_id IS NOT NULL							-- tylko player-created
-				AND knowing_character_id != 30							-- nie rób Relationship dla MG
+				AND knowing_character_id != 30							-- nie rób Knowledge dla MG
 		$$)
 		AS imported(
 			id int, is_direct boolean, knowing_character_id int, known_character_id int,
@@ -459,10 +473,10 @@ WITH inserted AS (
 UPDATE characters_characterversion c
 SET versionkind = '6. BYPLAYER'
 FROM inserted
-WHERE c.id = inserted.characterversion_id;
+WHERE c.id = inserted.object_id;
 
 
-SELECT setval('characters_relationship_id_seq', 1 + (SELECT MAX(id) FROM characters_relationship));
+SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters_knowledge));
 
 
 

@@ -1,27 +1,47 @@
 
 
+/* Resize M2M filter_horizontal */
+.selector {width: 420px;}
 
 .selector select {
-    height: 7em;
+    min-height: 5em;
+    max-height: 5em;
     width: 15em;
 }
+
+.selector-chosen select {
+    min-height: 8.1em;
+    max-height: 8.1em;
+    width: 15em;
+}
+
 
 .selector .selector-available input {
     width: 11em;
-
 }
+/* END Resizing M2M filter_horizontal */
 
-select[multiple] {min-height: 7em}
 
-.selector-available, .selector-chosen {
-    width: 15em;
-}
 
-div.selector {width: 420px;}
-
-td[class^="field-"] {
+/* Save space in TabularInline */
+.inline-group .tabular tr td[class^="field-"] {
     padding-left: 0.1rem;
-    /* padding-right: 0; */
+    padding-top: 1rem;
 }
 
-p label[for^="id_firstnames-0"] {display: none;}
+
+/* p label[for^="id_[a-zA-Z]names-"] {display: none;} */
+
+td.original p {
+    display: none;
+}
+
+.inline-group thead th.column-isarchaic {
+    writing-mode: vertical-rl;
+    padding: 4px 0px;
+}
+
+.inline-group thead th {
+    vertical-align: bottom;
+    padding: 4px;
+}

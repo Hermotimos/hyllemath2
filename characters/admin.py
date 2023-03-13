@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 from django.db.models import TextField, CharField, ForeignKey, Max
@@ -9,8 +10,8 @@ from django.urls import reverse
 from characters.admin_filters import (
     FirstNameGroupOfFirstNameFilter, ParentgroupOfFirstNameGroupFilter,
 )
-from characters.models import (
-    Character,  Relationship,
+from characters.models import  (
+    Character,
     CharacterVersion, CharacterVersionTag,
     FamilyName, FamilyNameGroup, FamilyNameTag,
     FirstName, FirstNameGroup, FirstNameTag,
@@ -78,7 +79,7 @@ class FirstNameGroupAdmin(CustomModelAdmin):
 
     class Media:
         css = {
-            'all': ('admin_change_form_namegroup.css',)
+            'all': (f'{settings.STATIC_URL}css/admin_change_form_namegroup.css',)
         }
 
 
@@ -124,8 +125,8 @@ class FamilyNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
     model = FamilyName
     extra = 5
     fields = [
-        'origin', 'nominative', 'nominative_pl', 'genitive',
-        'genitive_pl', 'description', 'tags',
+        'nominative', 'nominative_pl', 'genitive', 'genitive_pl', 'origin',
+        'description', 'tags',
     ]
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 14})},
@@ -135,7 +136,7 @@ class FamilyNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
 
     class Media:
         css = {
-            'all': ('admin_change_form_namegroup.css',)
+            'all': (f'{settings.STATIC_URL}css/admin_change_form_namegroup.css',)
         }
 
 
@@ -172,22 +173,21 @@ class FamilyNameAdmin(CustomModelAdmin):
 
 #  ------------------------------------------------------------
 
+class KnowledgeActiveInline(CachedFormfieldsFKMixin, admin.TabularInline):
+    # Regular admin.TabularInline for this side of the generic relation!
+    model = Knowledge
+    verbose_name_plural = "Knowledges (this character knows these character versions)"
 
-class RelationshipInlineForCharacter(CachedFormfieldsFKMixin, admin.TabularInline):
-    """
-    An inline for handling Relationships from Character's perspective.
-    That is - which CharacterVersions this Character knows.
-    This is different from CharacterVersionRelationshipInline, which is for
-    handling Characters who know this CharacterVersion.
-    """
-    model = Relationship
-    # fk_name = 'character'
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.prefetch_related('content_object')
+        return qs
 
 
 @admin.register(Character)
 class CharacterAdmin(CustomModelAdmin):
     fields = ['user', '_createdat']
-    inlines = [RelationshipInlineForCharacter]
+    inlines = [KnowledgeActiveInline]
     list_display = [
         'main_characterversion', 'user', 'get_related_characterversions',
         '_createdat',
@@ -222,21 +222,15 @@ class CharacterAdmin(CustomModelAdmin):
 #  ------------------------------------------------------------
 
 
-class KnowledgeInline(CachedFormfieldsFKMixin, GenericTabularInline):
+class KnowledgePassiveInline(CachedFormfieldsFKMixin, GenericTabularInline):
     model = Knowledge
     # fk_name = 'character'
+    verbose_name_plural = "Knowledges (this character version is known by)"
 
-
-class RelationshipInlineForCharacterVersion(CachedFormfieldsFKMixin, admin.TabularInline):
-    """
-    An inline for handling Relationships from CharacterVersion's perspective.
-    That is - which Characters know this CharacterVersion.
-    This is different from CharacterRelationshipInline, which is for
-    handling CharacterVersions known by this Character .
-    """
-    model = CharacterVersion.known_by_characters.through
-    # fk_name = 'characterversion'
-    extra = 2
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.prefetch_related('content_object')
+        return qs
 
 
 @admin.register(CharacterVersion)
@@ -261,7 +255,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
         CharField: {'widget': TextInput(attrs={'size': 15})},
         ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
     }
-    inlines = [KnowledgeInline, RelationshipInlineForCharacterVersion]
+    inlines = [KnowledgePassiveInline]
     list_display = [
         'get_img', 'fullname', 'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
@@ -283,7 +277,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
 
     class Media:
         css = {
-            'all': ('admin_change_form_characterversion.css',)
+            'all': (f'{settings.STATIC_URL}css/admin_change_form_characterversion.css',)
         }
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):

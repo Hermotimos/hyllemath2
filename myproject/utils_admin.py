@@ -6,8 +6,7 @@ from django.contrib.admin import ModelAdmin
 
 def formfield_with_cache(db_field, formfield, request):
     if formfield:
-        # this condition is useful to avoid errors for M2M fields absent
-        # from the form, so formfield is None, ex. Character.relationships
+        # condition to avoid errors for M2M fields absent from the form
         choices = getattr(request, f'_{db_field.name}_choices_cache', None)
         if choices is None:
             choices = list(formfield.choices)

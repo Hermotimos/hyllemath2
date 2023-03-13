@@ -168,18 +168,16 @@ class Character(Model):
     objects = CharacterManager()
 
     user = FK(User, related_name='characters', default=get_gamemaster, on_delete=CASCADE)
-    # TODO być może dodać pole techniczne "mainname"
-    # uzupełniać je w save() CharacterVersion: jeśli versionkind = MAIN to
-    # self.character.mainname = self.fullname, self.character.save()
-    relationships = M2M(
-        'CharacterVersion', through='Relationship',
-        related_name='known_by_characters', blank=True)
+    mainversionname = CharField(max_length=150, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["user__is_superuser", "user__username"]
+        ordering = ["user__is_superuser", "mainversionname"]
 
     def __str__(self):
+        if self.mainversionname:
+            print(self.mainversionname)
+            return str(self.mainversionname)
         return f"{self.user.username} - {self.id}"
 
 
@@ -306,34 +304,15 @@ class CharacterVersion(Model):
         fullname = f"{firstname} {familyname} {nickname} {originname}"
         self.fullname = fullname.replace('  ', ' ').strip()
 
+        if self.versionkind == '2. MAIN':
+            self.character.mainversionname = self.fullname
+            self.character.save()
+
         super().save(*args, **kwargs)
 
     # TODO
     # def get_absolute_url(self):
     #     return settings.BASE_URL + reverse('prosoponomikon:character', kwargs={'character_id' : self.id})
-
-
-class RelationshipManager(Manager):
-    def get_queryset(self):
-        qs = super().get_queryset()
-        qs = qs.select_related('character__user', 'characterversion__character')
-        return qs
-
-
-class Relationship(Model):
-    objects = RelationshipManager()
-
-    character = FK(Character, on_delete=PROTECT)
-    characterversion = FK(CharacterVersion, on_delete=PROTECT)
-    isdirect = BooleanField(default=False)
-    identifiedwith = ArrayField(PositiveIntegerField(), blank=True, null=True)
-    # TODO identifiedwith is for overriding DISTINCT ON (character_id, isalterego) in player's view
-
-    class Meta:
-        unique_together = ['character', 'characterversion']
-
-    def __str__(self):
-        return f"{self.character} -> {self.characterversion}"
 
 
 #  ------------------------------------------------------------
@@ -353,3 +332,4 @@ class Relationship(Model):
 
 
 #  ------------------------------------------------------------
+

@@ -7,6 +7,17 @@ from myproject.utils_views import auth_character
 
 
 
+
+
+# temp for updating Character.mainversionname
+if True:
+    print('\nUPDATED Character.mainversionname !!!\n')
+    for characterversion in CharacterVersion.objects.all():
+        characterversion.save()
+
+
+
+
 # @vary_on_cookie
 @login_required
 @auth_character(['all'])
@@ -38,10 +49,9 @@ def generic_relations_exemplary_view(request):
     # USE AS A PLAYER TO POPULATE knowledges
     # --------------------------------------
 
-    characterversions = CharacterVersion.objects.all()
+    # characterversions = CharacterVersion.objects.all()
     knowledges = []
     if current_character:
-        characterversions = current_character.relationships.all()
         knowledges = current_character.knowledges.prefetch_related(
             'content_object__picture',
             'content_object__firstname',
@@ -54,7 +64,7 @@ def generic_relations_exemplary_view(request):
     context = {
         'page_title': 'Prosoponomikon',
         'knowledges': knowledges,
-        'characterversions': characterversions,
+        # 'characterversions': characterversions,
     }
     return render(request, 'characters/exemplary.html', context)
 
