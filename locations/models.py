@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
     CASCADE, PROTECT, SET_NULL, SET_DEFAULT, TextChoices, Model, Manager, F,
@@ -8,6 +9,7 @@ from django.db.models import (
 from django.db.models.functions import Collate
 from django.utils.html import format_html
 
+from characters.models import Knowledge
 from myproject.utils_models import Tag
 from resources.models import Picture
 
@@ -15,7 +17,7 @@ from resources.models import Picture
 #  ------------------------------------------------------------
 
 
-class ToponymTag(Tag):
+class LocationNameTag(Tag):
     # add unique constraint as this is for GM use only
     title = CharField(max_length=50, unique=True)
     ordernum = IntegerField()
@@ -40,17 +42,17 @@ class ToponymTag(Tag):
 class LocationNameManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        qs = qs.select_related('toponymkinds')
+        qs = qs.prefetch_related('locationnametags')
         return qs
 
 
-class Toponym(Model):
+class LocationName(Model):
     objects = LocationNameManager()
 
     nominative = CharField(max_length=100, unique=True)
     genitive = CharField(max_length=100, blank=True, null=True)
     equivalents = ArrayField(CharField(max_length=100), blank=True)
-    toponymtags = M2M(ToponymTag, related_name="toponyms")
+    locationnametags = M2M(LocationNameTag, related_name="locationnames")
     meaning = TextField(max_length=1000, blank=True, null=True)
     description = TextField(max_length=1000, blank=True, null=True)
 
@@ -60,7 +62,7 @@ class Toponym(Model):
     def __str__(self):
         return self.nominative
 
-    # TODO in save method ensure if "river" is chosen as ToponymKind
+    # TODO in save method ensure if "river" is chosen as LocationNameKind
     # and specific region with property of "river=village=name" is assigned,
     # then "vilage" and "name" are also added to M2M
 
@@ -86,7 +88,6 @@ class LocationType(Model):
 #  ------------------------------------------------------------
 
 
-
 class LocationManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
@@ -97,7 +98,7 @@ class LocationManager(Manager):
 class Location(Model):
     objects = LocationManager()
 
-    name = FK(Toponym, related_name='locations', on_delete=PROTECT)
+    name = FK(LocationName, related_name='locations', on_delete=PROTECT)
     locationtype = FK(LocationType, related_name='locations', on_delete=PROTECT)
     inlocation = FK(
         to='self', related_name='locations', on_delete=PROTECT,
@@ -109,6 +110,8 @@ class Location(Model):
     def __str__(self):
         return self.name
 
+
+#  ------------------------------------------------------------
 
 
 class LocationVersionManager(Manager):
@@ -140,6 +143,8 @@ class LocationVersion(Model):
     # picturesets = M2M(to=PictureSet, related_name='locationversions', blank=True)
     # audiosets = M2M(AudioSet, related_name='locationversions', blank=True)
     # infopackets = M2M(to=InfoPacket, related_name='locationversions', blank=True)
+
+    knowledges = GenericRelation(Knowledge)
 
     class Meta:
         ordering = ['location', '-_createdat']

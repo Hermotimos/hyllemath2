@@ -10,10 +10,10 @@ from myproject.utils_views import auth_character
 
 
 # temp for updating Character.mainversionname
-if True:
-    print('\nUPDATED Character.mainversionname !!!\n')
-    for characterversion in CharacterVersion.objects.all():
-        characterversion.save()
+# if True:
+#     print('\nUPDATED Character.mainversionname !!!\n')
+#     for characterversion in CharacterVersion.objects.all():
+#         characterversion.save()
 
 
 
