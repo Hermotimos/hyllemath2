@@ -7,7 +7,7 @@ def auth_character(allowed_status: list):
     Log out user if there's a NoReverseMatch exception due to problems with
     session['character_id'] with URL of 'characters:character' view.
     If Character is authorized to use the view, provide request with
-    'current_character' attribute that can be accessed in vies and templates.
+    'user_character' attribute that can be accessed in vies and templates.
     """
     from characters.models import Character
 
@@ -19,18 +19,18 @@ def auth_character(allowed_status: list):
 
             else:
                 try:
-                    current_character = Character.objects.get(id=request.session.get('character_id'))
+                    user_character = Character.objects.get(id=request.session.get('character_id'))
                 except Character.DoesNotExist:
-                    current_character = None
+                    user_character = None
 
-                if not current_character:
+                if not user_character:
                     auth.logout(request)
                     messages.warning(request, 'Wystąpił problem z uwierzytelnieniem sesji użytkownika. Zaloguj się ponownie!')
                     return redirect('users:logout')
 
-                request.current_character = current_character
+                request.user_character = user_character
 
-                if 'all' in allowed_status or current_character.status in allowed_status:
+                if 'all' in allowed_status or user_character.status in allowed_status:
                     return view_func(request, *args, **kwargs)
                 return redirect('users:dupa')
 

@@ -4,6 +4,7 @@ from characters import views
 
 app_name = 'characters'
 urlpatterns = [
-    path('characters/', views.characters_main_view, name='characters'),
+    # path('characters/', views.characters_main_view, name='characters'),
+    path('characters/', views.CharacterVersionListView.as_view(), name='characters'),
     path('generic/', views.generic_relations_exemplary_view, name='generic'),
 ]
