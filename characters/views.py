@@ -24,14 +24,16 @@ from myproject.utils_views import auth_character
 class CharacterVersionListView(ListView):
     model = CharacterVersion
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # filter queryset for a player, don't filter for a GM
+    def get_queryset(self):
+        qs = super().get_queryset()
         if self.request.user.is_player:
             user_character = getattr(self.request, 'user_character', None)
-            context['characterversions'] = self.get_queryset().filter(knowledges__character=user_character)
-        else:
-            context['characterversions'] = self.queryset
+            return qs.filter(knowledges__character=user_character)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['characterversions'] = self.get_queryset()
         context['page_title'] = 'Prosoponomikon'
         return context
 
