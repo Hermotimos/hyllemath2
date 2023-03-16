@@ -146,10 +146,9 @@ class FamilyName(Model):
     def __str__(self):
         return self.nominative
 
-
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Call related objects' save() methods to reevaluate fullname
+        # Call related objects' save() to reevaluate CharacterVersion.fullname
         for characterversion in self.characterversions.all():
             characterversion.save()
 
@@ -294,7 +293,7 @@ class CharacterVersion(Model):
 
     def save(self, *args, **kwargs):
         # reevaluate fullname on each save;
-        # this is called by FirstName and FamilyName save() methods
+        # called by FirstName.save() and FamilyName.save()
         firstname, familyname, nickname, originname = (
             getattr(self.firstname, 'nominative', ""),
             getattr(self.familyname, 'nominative', ""),

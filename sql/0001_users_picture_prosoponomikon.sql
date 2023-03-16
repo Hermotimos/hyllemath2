@@ -326,7 +326,7 @@ ins_characters AS (
 ),
 ins_pictures AS (
   INSERT INTO resources_picture (title, category, image)
-  SELECT REPLACE(REPLACE(image, 'profile_pics/profile_', ''), '_', ' '), 'characters', image
+  SELECT REPLACE(REPLACE(image, 'profile_pics/profile_', ''), '_', ' '), 'character', image
   FROM imported
   WHERE image != 'profile_pics/profile_default.jpg'
   RETURNING  *
@@ -398,7 +398,7 @@ SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters
 
 -- Create Picture objects for AKA with alternative pics
 INSERT INTO resources_picture (title, category, image)
-SELECT DISTINCT REPLACE(REPLACE(knows_as_image, 'profile_pics/profile_', ''), '_', ' '), 'characters', knows_as_image
+SELECT DISTINCT REPLACE(REPLACE(knows_as_image, 'profile_pics/profile_', ''), '_', ' '), 'character', knows_as_image
 FROM dblink(
   'hyllemath',
   $$

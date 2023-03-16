@@ -49,11 +49,11 @@ class LocationNameManager(Manager):
 class LocationName(Model):
     objects = LocationNameManager()
 
-    nominative = CharField(max_length=100, unique=True)
+    nominative = CharField(max_length=100)
     genitive = CharField(max_length=100, blank=True, null=True)
-    equivalents = ArrayField(CharField(max_length=100), blank=True)
-    locationnametags = M2M(LocationNameTag, related_name="locationnames")
-    meaning = TextField(max_length=1000, blank=True, null=True)
+    adjectiveroot = CharField(max_length=100, blank=True, null=True)
+    equivalents = ArrayField(CharField(max_length=100), blank=True, null=True)
+    locationnametags = M2M(LocationNameTag, related_name="locationnames", blank=True)
     description = TextField(max_length=1000, blank=True, null=True)
 
     class Meta:
@@ -61,6 +61,12 @@ class LocationName(Model):
 
     def __str__(self):
         return self.nominative
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Call related objects' save() to reevaluate Location.name
+        for location in self.locations.all():
+            location.save()
 
     # TODO in save method ensure if "river" is chosen as LocationNameKind
     # and specific region with property of "river=village=name" is assigned,
@@ -98,7 +104,11 @@ class LocationManager(Manager):
 class Location(Model):
     objects = LocationManager()
 
-    name = FK(LocationName, related_name='locations', on_delete=PROTECT)
+    propername = FK(
+        LocationName, related_name='locations', on_delete=PROTECT,
+        blank=True, null=True)
+    descriptivename = CharField(max_length=100, blank=True, null=True)
+    name = CharField(max_length=100)    # redundantne, wygodniejsze od property
     locationtype = FK(LocationType, related_name='locations', on_delete=PROTECT)
     inlocation = FK(
         to='self', related_name='locations', on_delete=PROTECT,
@@ -109,6 +119,11 @@ class Location(Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # reevaluate name on each save; called by LocationName.save()
+        self.name = self.propername or self.descriptivename
+        super().save(*args, **kwargs)
 
 
 #  ------------------------------------------------------------
