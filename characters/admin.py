@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 from django.db.models import TextField, CharField, ForeignKey, Max
-from django.forms import ModelForm, Select, Textarea, TextInput
+from django.forms import Select, Textarea, TextInput
 from django.utils.html import format_html
 from django.utils.http import urlencode
 from django.urls import reverse
@@ -19,17 +19,9 @@ from characters.models import  (
 )
 from myproject.utils_admin import (
     CustomModelAdmin, CachedFormfieldsFKMixin, CachedFormfieldsAllMixin,
-    get_count_color,
+    get_count_color, TagAdminForm,
 )
 
-
-class TagAdminForm(ModelForm):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # add widget for a field identified by name
-        # it can be done in Meta, but then fields/exclude must be defined
-        self.fields['color'].widget = TextInput(attrs={'type': 'color'})
 
 
 @admin.register(FirstNameTag, FamilyNameTag)

@@ -97,8 +97,8 @@ class FirstName(Model):
     equivalents = M2M('self', symmetrical=True, blank=True)
     meaning = TextField(max_length=10000, blank=True, null=True)
     description = TextField(max_length=10000, blank=True, null=True)
-    tags = M2M(FirstNameTag, blank=True)
     comments = TextField(max_length=10000, blank=True, null=True)
+    tags = M2M(FirstNameTag, related_name='firstnames', blank=True)
 
     class Meta:
         ordering = [Collate('nominative', 'pl-PL-x-icu')]
@@ -128,7 +128,8 @@ class FamilyNameGroup(Model):
 
 
 class FamilyName(Model):
-    familynamegroup = FK(FamilyNameGroup, related_name='familynames', on_delete=PROTECT)
+    familynamegroup = FK(
+        FamilyNameGroup, related_name='familynames', on_delete=PROTECT)
     origin = FK(
         "self", related_name='originatedfamilynames',
         blank=True, null=True, on_delete=SET_NULL)
@@ -137,8 +138,8 @@ class FamilyName(Model):
     genitive = CharField(max_length=50, blank=True, null=True)
     genitive_pl = CharField(max_length=50, blank=True, null=True)
     description = TextField(max_length=10000, blank=True, null=True)
-    tags = M2M(FamilyNameTag,  related_name='familynames', blank=True)
     comments = TextField(max_length=10000, blank=True, null=True)
+    tags = M2M(FamilyNameTag, related_name='familynames', blank=True)
 
     class Meta:
         ordering = ["nominative"]
