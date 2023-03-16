@@ -504,7 +504,7 @@ SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters
 
 
 UPDATE characters_character AS c
-SET mainversionname = cv.fullname
+SET _mainversionname = cv.fullname
 FROM characters_characterversion AS cv
 WHERE c.id = cv.character_id AND cv.versionkind = '2. MAIN';
 

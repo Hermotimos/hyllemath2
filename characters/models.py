@@ -168,16 +168,16 @@ class Character(Model):
     objects = CharacterManager()
 
     user = FK(User, related_name='characters', default=get_gamemaster, on_delete=CASCADE)
-    mainversionname = CharField(max_length=150, blank=True, null=True)
+    _mainversionname = CharField(max_length=150, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["user__is_superuser", "mainversionname"]
+        ordering = ["user__is_superuser", "_mainversionname"]
 
     def __str__(self):
-        if self.mainversionname:
-            print(self.mainversionname)
-            return str(self.mainversionname)
+        if self._mainversionname:
+            print(self._mainversionname)
+            return str(self._mainversionname)
         return f"{self.user.username} - {self.id}"
 
 
@@ -305,7 +305,7 @@ class CharacterVersion(Model):
         self.fullname = fullname.replace('  ', ' ').strip()
 
         if self.versionkind == '2. MAIN':
-            self.character.mainversionname = self.fullname
+            self.character._mainversionname = self.fullname
             self.character.save()
 
         super().save(*args, **kwargs)
