@@ -503,6 +503,12 @@ SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters
 
 
 
+UPDATE characters_character AS c
+SET mainversionname = cv.fullname
+FROM characters_characterversion AS cv
+WHERE c.id = cv.character_id AND cv.versionkind = '2. MAIN';
+
+
 
 
 
@@ -514,7 +520,8 @@ SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters
       *** admin na zasadzie First/FamilyNameGroup z inline First/FamilyName z polami M2M do edycji w inlinie.
       *** możliwe Locations odfiltrować tylko te, które są krainami, żeby usprawnić wybór
   2) [???] zrobić wersje z isalterego=True (Hagadon, Farkon itd.)
-  3) Skopiować wszystkie media/ pliki, zamienić Total Commanderem " " na "_" spacja na podkreślenia
+  3) Skopiować wszystkie media/ pliki, zamienić Total Commanderem " " na "_" spacja na podkreślenia,
+      żeby pasowały do podmienionych powyżej ścieżek.
 
 
 */
