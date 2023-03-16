@@ -1,4 +1,5 @@
 from django.contrib.admin import ModelAdmin
+from django.forms import ModelForm, TextInput
 
 
 # -----------------------------------------------------------------------------
@@ -89,3 +90,19 @@ def get_count_color(value):
     for k, v in colors.items():
         if value in k:
             return v
+
+
+# -----------------------------------------------------------------------------
+
+
+class ColorPickerMixin:
+    """A mixin for making TextInput fields named 'color' into color pickers."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['color'].widget = TextInput(attrs={'type': 'color'})
+
+
+
+class TagAdminForm(ColorPickerMixin, ModelForm):
+    pass

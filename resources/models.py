@@ -1,5 +1,5 @@
 from django.db.models import (
-    Model, AutoField, CharField, ImageField, TextChoices, ForeignKey as FK,
+    Model, CharField, ImageField, TextChoices, ForeignKey as FK,
     PROTECT,
 )
 from resources.utils import image_upload_path
@@ -31,15 +31,11 @@ class Picture(Model):
         return self.title
 
 
-class PictureVersion(Model):
-    picture = FK(Picture, related_name='pictureversions', on_delete=PROTECT)
-    caption = CharField(max_length=100)
-
 #  ------------------------------------------------------------
 
 
 class PictureVersion(Model):
-    picture = FK(Picture, related_name="pictures", on_delete=PROTECT)
+    picture = FK(Picture, related_name="pictureversions", on_delete=PROTECT)
     title = CharField(max_length=100, unique=True)
 
     # TODO this class is for GameEvent (or Event in general), maybe InfoPacket

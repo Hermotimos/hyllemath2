@@ -29,5 +29,18 @@ class PictureAdmin(admin.ModelAdmin):
             return format_html(html, url, color, count)
         return "-"
 
+    @admin.display(description="Locations")
+    def get_related_locations(self, obj):
+        if count := obj.characterversions.count():
+            url = (
+                reverse("admin:characters_characterversion_changelist")
+                + "?"
+                + urlencode({"picture__id": f"{obj.id}"})
+            )
+            color = get_count_color(count)
+            html = '<a href="{}" style="border: 1px solid; padding: 2px 3px; color: {};">{}</a>'
+            return format_html(html, url, color, count)
+        return "-"
+
     # TODO: podobne dodatkowe pola z linkiem dla innych obiektów z picture:
     #  (PictureVersion, PictureSet) - metoda, nadpiska nazwy, prefetch
