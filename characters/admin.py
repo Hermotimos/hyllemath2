@@ -19,7 +19,7 @@ from characters.models import  (
 )
 from myproject.utils_admin import (
     CustomModelAdmin, CachedFormfieldsFKMixin, CachedFormfieldsAllMixin,
-    get_count_color, TagAdminForm,
+    get_count_color, TagAdminForm, VersionedAdminMixin,
 )
 
 
@@ -177,13 +177,10 @@ class KnowledgeActiveInline(CachedFormfieldsFKMixin, admin.TabularInline):
 
 
 @admin.register(Character)
-class CharacterAdmin(CustomModelAdmin):
+class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
     fields = ['user', '_createdat']
     inlines = [KnowledgeActiveInline]
-    list_display = [
-        'main_characterversion', 'user', 'get_related_characterversions',
-        '_createdat',
-    ]
+    list_display = ['main_characterversion', 'user', 'versions', '_createdat']
     list_editable = ['user']
     readonly_fields = ['_createdat']
 
@@ -196,19 +193,6 @@ class CharacterAdmin(CustomModelAdmin):
     @admin.display(description="Main Character Version")
     def main_characterversion(self, obj):
         return obj.main_characterversion
-
-    @admin.display(description="Character Versions")
-    def get_related_characterversions(self, obj):
-        if count := obj.characterversions.count():
-            url = (
-                reverse("admin:characters_characterversion_changelist")
-                + "?"
-                + urlencode({"character__id": f"{obj.id}"})
-            )
-            color = get_count_color(count)
-            html = '<a href="{}" style="border: 1px solid; padding: 2px 3px; color: {};">{}</a>'
-            return format_html(html, url, color, count)
-        return "-"
 
 
 #  ------------------------------------------------------------

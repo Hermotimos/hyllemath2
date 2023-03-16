@@ -42,7 +42,7 @@ class LocationNameTag(Tag):
 class LocationNameManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        qs = qs.prefetch_related('locationnametags')
+        qs = qs.prefetch_related('tags')
         return qs
 
 
@@ -53,8 +53,8 @@ class LocationName(Model):
     genitive = CharField(max_length=100, blank=True, null=True)
     adjectiveroot = CharField(max_length=100, blank=True, null=True)
     equivalents = ArrayField(CharField(max_length=100), blank=True, null=True)
-    locationnametags = M2M(LocationNameTag, related_name="locationnames", blank=True)
     description = TextField(max_length=1000, blank=True, null=True)
+    tags = M2M(LocationNameTag, related_name="locationnames", blank=True)
 
     class Meta:
         ordering = [Collate('nominative', 'pl-PL-x-icu')]
@@ -63,6 +63,7 @@ class LocationName(Model):
         return self.nominative
 
     def save(self, *args, **kwargs):
+        self.genitive = self.genitive.title()
         super().save(*args, **kwargs)
         # Call related objects' save() to reevaluate Location.name
         for location in self.locations.all():
@@ -76,7 +77,16 @@ class LocationName(Model):
 #  ------------------------------------------------------------
 
 
+class LocationTypeManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related('defaultpicture')
+        return qs
+
+
 class LocationType(Model):
+    objects = LocationTypeManager()
+
     name = CharField(unique=True, max_length=100)
     namepl = CharField(max_length=100, blank=True, null=True)
     defaultpicture = FK(
@@ -97,7 +107,7 @@ class LocationType(Model):
 class LocationManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        qs = qs.select_related('inlocation')
+        qs = qs.select_related('inlocation', 'locationtype', 'propername')
         return qs
 
 
@@ -122,7 +132,7 @@ class Location(Model):
 
     def save(self, *args, **kwargs):
         # reevaluate name on each save; called by LocationName.save()
-        self.name = self.propername or self.descriptivename
+        self.name = str(self.propername) or self.descriptivename
         super().save(*args, **kwargs)
 
 
@@ -145,10 +155,10 @@ class LocationVersion(Model):
     location = FK(Location, related_name='locationversions', on_delete=PROTECT)
     # TODO: czy tu paketyzacja?
     description = TextField(blank=True, null=True)
-    comment = TextField(max_length=1000, blank=True, null=True)
     mainpicture = FK(
         to=Picture, related_name='locationversions', on_delete=PROTECT,
         blank=True, null=True)
+    comment = TextField(max_length=1000, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
     # TODO players see DISTINCT ON (location) ORDER BY _createdat DESC
 
@@ -179,6 +189,11 @@ class LocationVersion(Model):
     #         known_character__profile__in=Profile.active_players.all())
     #     return qs
 
+
+    # TODO przekształcić, może wyekspediować do funkcji wołającej to na podstawie request.user?
+    #  Przyjrzeć się dokładnie co to robi w Hyllemath 1.0 i gdzie jest używane
+    # Być może rozbić na dwie osobne funkcje, jedna do Location,
+    # druga do zbierania z wyników pierwszej LocationVersion
     def with_sublocations(self):
         with_sublocs = Location.objects.raw(f"""
             WITH RECURSIVE sublocations AS (
@@ -193,7 +208,7 @@ class LocationVersion(Model):
         return with_sublocs
 
 
-
+# TODO Proxies - przyjrzeć się czy są potrzebne, zwłaszcza jak mam linki do edycji ze strony
 
 # class PrimaryLocationManager(Manager):
 #     def get_queryset(self):

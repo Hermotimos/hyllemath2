@@ -1,5 +1,8 @@
 from django.contrib.admin import ModelAdmin
 from django.forms import ModelForm, TextInput
+from django.urls import reverse
+from django.utils.html import format_html
+from django.utils.http import urlencode
 
 
 # -----------------------------------------------------------------------------
@@ -90,6 +93,29 @@ def get_count_color(value):
     for k, v in colors.items():
         if value in k:
             return v
+
+
+class VersionedAdminMixin:
+    """
+    A mixin providing a generic method for an admin list_display field that
+    creates a link to object's versions list.
+    """
+
+    def versions(self, obj):
+        app_name = self.model.__module__.split('.')[0]
+        model_name = self.model.__name__.lower()
+        version_model_name = (model_name + 'version').lower()
+
+        if count := getattr(obj, f"{version_model_name}s", None).count():
+            url = (
+                reverse(f"admin:{app_name}_{version_model_name}_changelist")
+                + "?"
+                + urlencode({f"{model_name}__id": f"{obj.id}"})
+            )
+            color = get_count_color(count)
+            html = '<a href="{}" style="border: 1px solid; padding: 2px 3px; color: {};" target="_blank">{}</a>'
+            return format_html(html, url, color, count)
+        return "-"
 
 
 # -----------------------------------------------------------------------------
