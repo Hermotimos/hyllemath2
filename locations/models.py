@@ -18,7 +18,7 @@ from resources.models import Picture
 
 
 class LocationNameTag(Tag):
-    # add unique constraint as this is for GM use only
+    # unique constraint as this is for GM use only
     title = CharField(max_length=50, unique=True)
     ordernum = IntegerField()
 
@@ -155,6 +155,7 @@ class LocationVersion(Model):
     location = FK(Location, related_name='locationversions', on_delete=PROTECT)
     # TODO: czy tu paketyzacja?
     description = TextField(blank=True, null=True)
+    population = PositiveIntegerField(blank=True, null=True)
     mainpicture = FK(
         to=Picture, related_name='locationversions', on_delete=PROTECT,
         blank=True, null=True)

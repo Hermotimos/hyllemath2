@@ -92,6 +92,14 @@ SELECT * FROM locations_location ll;
 
 
 
+-- ----------------------------------------------------------------------------
+-- LOCATIONS TODO:
+/*
+  1) Dodać LocationNameTag i otagować nazwy istniejące. Następnie dodać te pospisywane, np. w MG TODO w Hyllemath 1.0
+
+
+*/
+
 
 -- =====================================================
 

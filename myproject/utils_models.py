@@ -21,5 +21,5 @@ def get_gamemaster() -> str:
     return default_gamemaster
 
 
-def min_max_validators(min: int, max: int) -> list:
+def min_max(min: int, max: int) -> list:
     return [MinValueValidator(min), MaxValueValidator(max)]

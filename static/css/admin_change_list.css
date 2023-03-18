@@ -7,15 +7,15 @@ td[class^="field-"] {padding: 8px 0.2rem 0.2rem 0.2rem ;}
 
 
 /* narrower formd fields for integer fields */
-td.field-strength input,
+/* td.field-strength input,
 td.field-dexterity input,
 td.field-endurance input,
-td.field-power input {width: 3em;}
+td.field-power input {width: 3em;} */
 
 /* vertical writing mode for headers that take more space than their fields */
-th.column-strength div a,
+/* th.column-strength div a,
 th.column-dexterity div a,
 th.column-endurance div a,
 th.column-power div a {
     writing-mode: vertical-rl;
-}
+} */

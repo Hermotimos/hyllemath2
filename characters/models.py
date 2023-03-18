@@ -11,7 +11,7 @@ from django.db.models.functions import Collate
 from django.utils.html import format_html
 
 from resources.models import Picture
-from myproject.utils_models import Tag, get_gamemaster, min_max_validators
+from myproject.utils_models import Tag, get_gamemaster, min_max
 from users.models import User
 
 
@@ -168,6 +168,11 @@ class Character(Model):
     objects = CharacterManager()
 
     user = FK(User, related_name='characters', default=get_gamemaster, on_delete=CASCADE)
+    strength = IntegerField(default=9, validators=min_max(1,20), blank=True, null=True)
+    dexterity = IntegerField(default=9, validators=min_max(1,20), blank=True, null=True)
+    endurance = IntegerField(default=9, validators=min_max(1,20), blank=True, null=True)
+    power = IntegerField(default=1, validators=min_max(1,20), blank=True, null=True)
+    experience = PositiveSmallIntegerField(blank=True, null=True)
     _mainversionname = CharField(max_length=150, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
 
@@ -176,7 +181,6 @@ class Character(Model):
 
     def __str__(self):
         if self._mainversionname:
-            print(self._mainversionname)
             return str(self._mainversionname)
         return f"{self.user.username} - {self.id}"
 
@@ -255,13 +259,7 @@ class CharacterVersion(Model):
         blank=True, null=True)
     nickname = CharField(max_length=50, blank=True, null=True)
     originname = CharField(max_length=50, blank=True, null=True)
-    fullname = CharField(max_length=200) # redundantne, wygodniejsze od property
-
-    strength = IntegerField(default=9, validators=min_max_validators(1,20), blank=True, null=True)
-    dexterity = IntegerField(default=9, validators=min_max_validators(1,20), blank=True, null=True)
-    endurance = IntegerField(default=9, validators=min_max_validators(1,20), blank=True, null=True)
-    power = IntegerField(default=0, validators=min_max_validators(0,20), blank=True, null=True)
-    experience = PositiveSmallIntegerField(blank=True, null=True)
+    fullname = CharField(max_length=200)    # redundant, handier than property
     description = TextField(max_length=10000, blank=True, null=True)
 
     knowledges = GenericRelation(Knowledge)

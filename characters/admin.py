@@ -178,10 +178,25 @@ class KnowledgeActiveInline(CachedFormfieldsFKMixin, admin.TabularInline):
 
 @admin.register(Character)
 class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
-    fields = ['user', '_createdat']
+    fieldsets = [
+        (None, {
+            'fields': (
+                'user',
+                ('strength', 'dexterity', 'endurance', 'power',),
+                'experience',
+                '_createdat',
+            )
+        }),
+    ]
     inlines = [KnowledgeActiveInline]
-    list_display = ['main_characterversion', 'user', 'versions', '_createdat']
-    list_editable = ['user']
+    list_display = [
+        'main_characterversion', 'user', 'versions',
+        'strength', 'dexterity', 'endurance', 'power', 'experience',
+        '_createdat',
+    ]
+    list_editable = [
+        'user', 'strength', 'dexterity', 'endurance', 'power', 'experience',
+    ]
     readonly_fields = ['_createdat']
 
     def get_queryset(self, request):
@@ -214,13 +229,11 @@ class CharacterVersionAdmin(CustomModelAdmin):
     fieldsets = [
         (None, {
             'fields': (
-                ('character', 'picture'),
                 'fullname',
-                ('comment', 'versionkind', 'isalive', 'isalterego'),
+                ('character', 'picture'),
                 ('firstname', 'familyname', 'nickname', 'originname',),
+                ('comment', 'versionkind', 'isalive', 'isalterego'),
                 'description',
-                ('strength', 'dexterity', 'endurance', 'power',),
-                'experience',
                 'tags',
             )
         }),
@@ -236,13 +249,11 @@ class CharacterVersionAdmin(CustomModelAdmin):
         'get_img', 'fullname', 'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
         'description',
-        'strength', 'dexterity', 'endurance', 'power', 'experience',
     ]
     list_editable = [
         'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
         'description',
-        'strength', 'dexterity', 'endurance', 'power', 'experience',
     ]
     list_per_page = 50
     radio_fields =  {"versionkind": admin.VERTICAL}

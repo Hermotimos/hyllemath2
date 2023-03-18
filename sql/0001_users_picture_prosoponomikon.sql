@@ -319,8 +319,8 @@ imported AS (
 )
 ,
 ins_characters AS (
-  INSERT INTO characters_character (id, user_id, _createdat)
-  SELECT profileid, userid, current_timestamp                     -- characters have ids from profiles
+  INSERT INTO characters_character (id, user_id, strength, dexterity, endurance, power, experience, _createdat)
+  SELECT profileid, userid, strength, dexterity, endurance, 1, experience, current_timestamp                     -- characters have ids from profiles
   FROM imported
   RETURNING *
 ),
@@ -334,14 +334,12 @@ ins_pictures AS (
 INSERT INTO characters_characterversion (
   id, character_id, versionkind, isalive, isalterego, firstname_id, familyname_id,
   nickname, originname, fullname,
-  description, strength, dexterity, endurance, power, experience,
-  _createdby_id, _createdat, picture_id
+  description, _createdby_id, _createdat, picture_id
 )
 SELECT characterid, profileid, '2. MAIN', is_alive, FALSE, first_name_id, family_name_id,
   CASE WHEN cognomen LIKE 'z %' OR cognomen LIKE 'ze %' THEN NULL ELSE cognomen END,
   CASE WHEN cognomen LIKE 'z %' OR cognomen LIKE 'ze %' THEN cognomen ELSE NULL END, fullname,
-  description, strength, dexterity, endurance, 0, experience,
-  createdbyuserid, current_timestamp , pic.id
+  description, createdbyuserid, current_timestamp , pic.id
 FROM imported
 LEFT JOIN ins_pictures pic ON pic.image = imported.image;      -- LEFT dla postaci bez obrazka: utworzone przez graczy lub niedokończone
 
