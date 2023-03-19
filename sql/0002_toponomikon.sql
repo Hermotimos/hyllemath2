@@ -45,6 +45,9 @@ SELECT * FROM locations_locationtype;
 
 
 
+
+-- Location, PictureImage --> Location, LocationName, Picture, LocationVersion
+
 WITH imported AS (
 	SELECT * FROM dblink(
 		'hyllemath',
@@ -74,20 +77,33 @@ locationnames AS (
 	WHERE propername IS NOT NULL
 	RETURNING id, nominative
 ),
-ins AS (
+ins_locations AS (
 	INSERT INTO locations_location (id, propername_id, descriptivename, name, inlocation_id, locationtype_id)
 	SELECT imported.id, locn.id, CASE WHEN imported.name LIKE '% %' THEN imported.name ELSE NULL END, imported.name,
 		imported.in_location_id, imported.location_type_id
 	FROM imported
 	LEFT JOIN locationnames locn ON locn.nominative = imported.name
-	RETURNING *)
-SELECT count(*) FROM ins;
+	RETURNING *
+),
+ins_locationversions AS (
+	INSERT INTO locations_locationversion (location_id, description, mainpicture_id, _createdat)
+	SELECT imported.id, imported.description, pic.id, current_timestamp
+	FROM imported
+	LEFT JOIN ins_pictures pic ON imported.pictureimageurl = pic.image
+  RETURNING *
+)
+SELECT count(*) FROM ins_locationversions;
 
 SELECT setval('resources_picture_id_seq', 1 + (SELECT MAX(id) FROM resources_picture));
 SELECT setval('locations_location_id_seq', 1 + (SELECT MAX(id) FROM locations_location));
+SELECT setval('locations_locationversion_id_seq', 1 + (SELECT MAX(id) FROM locations_locationversion));
 
 SELECT * FROM locations_location ll;
+SELECT * FROM locations_locationversion ll;
 
+
+
+-- imported Location ==  1:1
 
 
 
