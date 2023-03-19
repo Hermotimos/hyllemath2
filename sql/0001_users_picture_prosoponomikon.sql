@@ -352,14 +352,18 @@ SELECT setval('resources_picture_id_seq', 1 + (SELECT MAX(id) FROM resources_pic
 
 /*
 IMPORTANT:
-    * Profile.id       ---->   Character.id
-    * Character.id     ----->   CharacterVersion.id
+    * User.id       ---->   User.id
+    * Profile.id    ---->   Character.id
+    * Character.id  ---->   CharacterVersion.id
 */
 
 
--- all 9143 minus GM 395 = 9748
+-- all 9151
+   -- GM 397
+   -- non-GM 8754: tyle powinno być ostatecznie obiektów Knowledge
 
--- Acquaitanceship ==> Knowledge (non-AKA) 8727
+
+-- Acquaitanceship ==> Knowledge (non-AKA) 8729
 
 WITH contenttype AS (
   SELECT id FROM django_content_type
@@ -383,16 +387,15 @@ FROM dblink(
       AND (a.knows_as_image = '') IS NOT FALSE
   $$)
   AS imported(
-  id int, is_direct boolean, knowing_character_id int, known_character_id int,
-  characterid int, profileid int, fullname text);
+	  id int, is_direct boolean, knowing_character_id int, known_character_id int,
+	  characterid int, profileid int, fullname text);
 
 SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters_knowledge));
 
 
 
 
--- Acquaitanceship AKA ==> Knowledge + CharacterVersion(for AKA) 18
-
+-- Acquaitanceship AKA ==> Knowledge + CharacterVersion(for AKA) 22
 
 -- Create Picture objects for AKA with alternative pics
 INSERT INTO resources_picture (title, category, image)
@@ -408,7 +411,6 @@ FROM dblink(
 ON CONFLICT (title) DO NOTHING;
 
 SELECT setval('resources_picture_id_seq', 1 + (SELECT MAX(id) FROM resources_picture));
-
 
 
 WITH contenttype AS (
@@ -505,8 +507,6 @@ UPDATE characters_character AS c
 SET _mainversionname = cv.fullname
 FROM characters_characterversion AS cv
 WHERE c.id = cv.character_id AND cv.versionkind = '2. MAIN';
-
-
 
 
 
