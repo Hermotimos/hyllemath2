@@ -1,11 +1,9 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
-from django.db.models import TextField, CharField, ForeignKey, Max
+from django.db.models import TextField, CharField, ForeignKey, Min
 from django.forms import Select, Textarea, TextInput
 from django.utils.html import format_html
-from django.utils.http import urlencode
-from django.urls import reverse
 
 from characters.admin_filters import (
     FirstNameGroupOfFirstNameFilter, ParentgroupOfFirstNameGroupFilter,
@@ -19,7 +17,7 @@ from characters.models import  (
 )
 from myproject.utils_admin import (
     CustomModelAdmin, CachedFormfieldsFKMixin, CachedFormfieldsAllMixin,
-    get_count_color, TagAdminForm, VersionedAdminMixin,
+    TagAdminForm, VersionedAdminMixin,
 )
 
 
@@ -165,6 +163,23 @@ class FamilyNameAdmin(CustomModelAdmin):
 
 #  ------------------------------------------------------------
 
+
+class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
+    fields = [
+        'fullname', 'versionkind', 'isalive', 'isalterego',
+        'firstname', 'familyname', 'nickname', 'originname',
+        'description',
+    ]
+    formfield_overrides = {
+        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
+        CharField: {'widget': TextInput(attrs={'size': 15})},
+        ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
+    }
+    model = CharacterVersion
+    extra = 1
+    readonly_fields = ['fullname']
+
+
 class KnowledgeActiveInline(CachedFormfieldsFKMixin, admin.TabularInline):
     # Regular admin.TabularInline for this side of the generic relation!
     model = Knowledge
@@ -188,7 +203,7 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
             )
         }),
     ]
-    inlines = [KnowledgeActiveInline]
+    inlines = [CharacterVersionInline, KnowledgeActiveInline]
     list_display = [
         'main_characterversion', 'user', 'versions',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
@@ -202,7 +217,7 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = qs.prefetch_related('characterversions')
-        qs = qs.annotate(main_characterversion=Max('characterversions__fullname'))
+        qs = qs.annotate(main_characterversion=Min('characterversions__fullname'))
         return qs
 
     @admin.display(description="Main Character Version")
