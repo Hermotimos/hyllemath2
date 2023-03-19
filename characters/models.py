@@ -178,6 +178,7 @@ class Character(Model):
 
     class Meta:
         ordering = ["user__is_superuser", "_mainversionname"]
+        unique_together = ['user', '_mainversionname']
 
     def __str__(self):
         if self._mainversionname:
@@ -185,13 +186,7 @@ class Character(Model):
         return f"{self.user.username} - {self.id}"
 
 
-class CharacterVersionManager(Manager):
-    def get_queryset(self):
-        qs = super().get_queryset()
-        qs = qs.select_related(
-            'picture', 'firstname', 'familyname', '_createdby',
-        )
-        return qs
+#  ------------------------------------------------------------
 
 
 class KnowledgeManager(Manager):
@@ -225,6 +220,15 @@ class Knowledge(Model):
 
 
 #  ------------------------------------------------------------
+
+
+class CharacterVersionManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related(
+            'picture', 'firstname', 'familyname', '_createdby',
+        )
+        return qs
 
 
 class CharacterVersion(Model):
@@ -277,7 +281,7 @@ class CharacterVersion(Model):
 
     tags = M2M(CharacterVersionTag, related_name='characterversions', blank=True)
     _createdby = FK(
-        User, related_name='createdcharacterversionss', on_delete=SET_NULL,
+        Character, related_name='characterversionscreated', on_delete=SET_NULL,
         blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
 
@@ -302,6 +306,7 @@ class CharacterVersion(Model):
         fullname = f"{firstname} {familyname} {nickname} {originname}"
         self.fullname = fullname.replace('  ', ' ').strip()
 
+        # When updating MAIN version, update related model's _mainversionname
         if self.versionkind == '2. MAIN':
             self.character._mainversionname = self.fullname
             self.character.save()

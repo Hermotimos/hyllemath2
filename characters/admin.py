@@ -177,6 +177,7 @@ class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
     }
     model = CharacterVersion
     extra = 1
+    fk_name = 'character'
     readonly_fields = ['fullname']
 
 
@@ -205,7 +206,7 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
     ]
     inlines = [CharacterVersionInline, KnowledgeActiveInline]
     list_display = [
-        'main_characterversion', 'user', 'versions',
+        '_mainversionname', '_versions', 'user',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
         '_createdat',
     ]
@@ -217,12 +218,7 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = qs.prefetch_related('characterversions')
-        qs = qs.annotate(main_characterversion=Min('characterversions__fullname'))
         return qs
-
-    @admin.display(description="Main Character Version")
-    def main_characterversion(self, obj):
-        return obj.main_characterversion
 
 
 #  ------------------------------------------------------------

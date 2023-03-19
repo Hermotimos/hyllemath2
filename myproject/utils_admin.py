@@ -101,7 +101,7 @@ class VersionedAdminMixin:
     creates a link to object's versions list.
     """
 
-    def versions(self, obj):
+    def _versions(self, obj):
         app_name = self.model.__module__.split('.')[0]
         model_name = self.model.__name__.lower()
         version_model_name = (model_name + 'version').lower()
