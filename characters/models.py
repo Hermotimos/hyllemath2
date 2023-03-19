@@ -178,7 +178,6 @@ class Character(Model):
 
     class Meta:
         ordering = ["user__is_superuser", "_mainversionname"]
-        unique_together = ['user', '_mainversionname']
 
     def __str__(self):
         if self._mainversionname:
