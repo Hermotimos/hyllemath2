@@ -97,8 +97,8 @@ class FirstName(Model):
     equivalents = M2M('self', symmetrical=True, blank=True)
     meaning = TextField(max_length=10000, blank=True, null=True)
     description = TextField(max_length=10000, blank=True, null=True)
-    comments = TextField(max_length=10000, blank=True, null=True)
     tags = M2M(FirstNameTag, related_name='firstnames', blank=True)
+    _comment = TextField(max_length=10000, blank=True, null=True)
 
     class Meta:
         ordering = [Collate('nominative', 'pl-PL-x-icu')]
@@ -138,8 +138,8 @@ class FamilyName(Model):
     genitive = CharField(max_length=50, blank=True, null=True)
     genitive_pl = CharField(max_length=50, blank=True, null=True)
     description = TextField(max_length=10000, blank=True, null=True)
-    comments = TextField(max_length=10000, blank=True, null=True)
     tags = M2M(FamilyNameTag, related_name='familynames', blank=True)
+    _comment = TextField(max_length=10000, blank=True, null=True)
 
     class Meta:
         ordering = ["nominative"]
@@ -244,16 +244,16 @@ class CharacterVersion(Model):
     character = FK(
         Character, related_name='characterversions', on_delete=PROTECT,
         blank=True, null=True)  # for player-created ones
-    picture = FK(
-        Picture, related_name='characterversions', on_delete=PROTECT,
-        blank=True, null=True)  # for player-created ones
     versionkind = CharField(
         max_length=15, choices=CharacterVersionKind.choices,
         default=CharacterVersionKind.MAIN)
-    comment = TextField(max_length=1000, blank=True, null=True)
-    isalive = BooleanField(default=True)
     isalterego = BooleanField(default=False)
 
+    # versioned stuff
+    isalive = BooleanField(default=True)
+    picture = FK(
+        Picture, related_name='characterversions', on_delete=PROTECT,
+        blank=True, null=True)  # for player-created ones
     firstname = FK(
         FirstName, related_name='characterversions', on_delete=PROTECT,
         blank=True, null=True)
@@ -277,12 +277,12 @@ class CharacterVersion(Model):
     #     related_name='acquiring_characters',
     #     blank=True)
 
-
     tags = M2M(CharacterVersionTag, related_name='characterversions', blank=True)
     _createdby = FK(
         Character, related_name='characterversionscreated', on_delete=SET_NULL,
         blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
+    _comment = TextField(max_length=1000, blank=True, null=True)
 
     class Meta:
         ordering = [Collate('fullname', 'pl-PL-x-icu'), "versionkind"]

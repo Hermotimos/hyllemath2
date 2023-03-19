@@ -51,7 +51,7 @@ class FirstNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
     extra = 5
     fields = [
         'nominative', 'genitive', 'gender', 'isarchaic', 'origin',
-        'meaning', 'description', 'comments', 'equivalents', 'tags',
+        'meaning', 'description', 'equivalents', 'tags', '_comment',
     ]
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 14})},
@@ -80,9 +80,10 @@ class FirstNameAdmin(CustomModelAdmin):
             'fields': (
                 ('firstnamegroup', 'gender', 'isarchaic'),
                 ('nominative', 'genitive', 'origin'),
-                ('meaning', 'description', 'comments',),
+                ('meaning', 'description'),
                 'equivalents',
                 'tags'
+                '_comment'
             ),
         }),
     ]
@@ -94,11 +95,11 @@ class FirstNameAdmin(CustomModelAdmin):
     }
     list_display = [
         'id', 'nominative', 'genitive', 'gender', 'isarchaic', 'firstnamegroup',
-        'origin', 'meaning', 'description', 'comments',
+        'origin', 'meaning', 'description', '_comment',
     ]
     list_editable = [
         'nominative', 'genitive', 'gender', 'isarchaic', 'firstnamegroup',
-        'origin', 'meaning', 'description', 'comments',
+        'origin', 'meaning', 'description', '_comment',
     ]
     list_filter = ['gender', FirstNameGroupOfFirstNameFilter]
     list_per_page = 50
@@ -116,7 +117,7 @@ class FamilyNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
     extra = 5
     fields = [
         'nominative', 'nominative_pl', 'genitive', 'genitive_pl', 'origin',
-        'description', 'tags',
+        'description', 'tags', '_comment',
     ]
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 14})},
@@ -147,11 +148,11 @@ class FamilyNameAdmin(CustomModelAdmin):
     }
     list_display = [
         'id', 'origin', 'nominative', 'nominative_pl', 'genitive',
-        'genitive_pl', 'description',
+        'genitive_pl', 'description', '_comment',
     ]
     list_editable = [
         'origin', 'nominative', 'nominative_pl', 'genitive', 'genitive_pl',
-        'description',
+        'description', '_comment',
     ]
     prepopulated_fields = {
         'nominative_pl': ['nominative'],
@@ -197,6 +198,7 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
     fieldsets = [
         (None, {
             'fields': (
+                '_mainversionname',
                 'user',
                 ('strength', 'dexterity', 'endurance', 'power',),
                 'experience',
@@ -213,7 +215,7 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
     list_editable = [
         'user', 'strength', 'dexterity', 'endurance', 'power', 'experience',
     ]
-    readonly_fields = ['_createdat']
+    readonly_fields = ['_mainversionname', '_createdat']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -243,9 +245,10 @@ class CharacterVersionAdmin(CustomModelAdmin):
                 'fullname',
                 ('character', 'picture'),
                 ('firstname', 'familyname', 'nickname', 'originname',),
-                ('comment', 'versionkind', 'isalive', 'isalterego'),
+                ('_comment', 'versionkind', 'isalive', 'isalterego'),
                 'description',
                 'tags',
+                ('_createdat', '_createdby'),
             )
         }),
     ]
@@ -260,16 +263,17 @@ class CharacterVersionAdmin(CustomModelAdmin):
         'get_img', 'fullname', 'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
         'description',
+        '_createdby', '_comment', '_createdat',
     ]
     list_editable = [
         'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
-        'description',
+        'description', '_comment'
     ]
     list_per_page = 50
     radio_fields =  {"versionkind": admin.VERTICAL}
     readonly_fields = [
-        'fullname', '_createdat',
+        'fullname', '_createdat', '_createdby',
     ]
     search_fields = ['fullname']
 
@@ -281,9 +285,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         # Show only tags created by GMs
         if db_field.name == "tags":
-            kwargs["queryset"] = CharacterVersionTag.objects.filter(
-                user__is_staff=True
-            )
+            kwargs["queryset"] = CharacterVersionTag.objects.filter(user__is_staff=True)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_formsets_with_inlines(self, request, obj=None):
@@ -297,7 +299,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
     def get_img(self, obj):
         img = '<img src="{}" width="70" height="70">'
         comment = '<br><span style="color: red; font-weight: normal; font-style: italic;">{}</span>'
-        html = img + comment if obj.comment else img
+        html = img + comment if obj._comment else img
         if obj.picture:
-            return format_html(html, obj.picture.image.url, obj.comment)
-        return format_html(html, "media/profile_pics/profile_default.jpg", obj.comment)
+            return format_html(html, obj.picture.image.url, obj._comment)
+        return format_html(html, "media/profile_pics/profile_default.jpg", obj._comment)

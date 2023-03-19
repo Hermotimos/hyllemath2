@@ -103,7 +103,7 @@ SELECT setval('characters_firstnametag_id_seq', 1 + (SELECT MAX(id) FROM charact
 -- FirstName ==> FirstName
 
 INSERT INTO characters_firstname (
-  id, gender, nominative, genitive, isarchaic, meaning, comments,
+  id, gender, nominative, genitive, isarchaic, meaning, _comment,
   origin_id, firstnamegroup_id)
 SELECT * FROM dblink(
   'hyllemath',

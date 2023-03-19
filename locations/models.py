@@ -9,7 +9,7 @@ from django.db.models import (
 from django.db.models.functions import Collate
 from django.utils.html import format_html
 
-from characters.models import Knowledge
+from characters.models import Knowledge, Character
 from myproject.utils_models import Tag
 from resources.models import Picture
 
@@ -107,33 +107,28 @@ class LocationType(Model):
 class LocationManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        qs = qs.select_related('inlocation', 'locationtype', 'propername')
+        qs = qs.select_related('inlocation', 'locationtype')
         return qs
 
 
 class Location(Model):
     objects = LocationManager()
 
-    propername = FK(
-        LocationName, related_name='locations', on_delete=PROTECT,
-        blank=True, null=True)
-    descriptivename = CharField(max_length=100, blank=True, null=True)
-    name = CharField(max_length=100)    # redundantne, wygodniejsze od property
     locationtype = FK(LocationType, related_name='locations', on_delete=PROTECT)
     inlocation = FK(
         to='self', related_name='locations', on_delete=PROTECT,
         blank=True, null=True)
+    _mainversionname = CharField(max_length=150, blank=True, null=True)
+    _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['name', 'locationtype']
+        ordering = ['_mainversionname']
+        unique_together = ['locationtype', '_mainversionname']
 
     def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        # reevaluate name on each save; called by LocationName.save()
-        self.name = str(self.propername) or self.descriptivename
-        super().save(*args, **kwargs)
+        if self._mainversionname:
+            return str(self._mainversionname)
+        return f"{self.user.username} - {self.id}"
 
 
 #  ------------------------------------------------------------
@@ -143,7 +138,7 @@ class LocationVersionManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
         qs = qs.select_related(
-            'location', 'mainpicture',
+            'location', 'propername', 'picture',
             # 'mainaudio',
         )
         return qs
@@ -152,16 +147,30 @@ class LocationVersionManager(Manager):
 class LocationVersion(Model):
     objects = LocationVersionManager()
 
+    class LocationVersionKind(TextChoices):
+        MAIN = "1. MAIN", "MAIN"
+        PARTIAL = "2. PARTIAL", "PARTIAL"
+        PAST = "3. PAST", "PAST"
+        BYPLAYER = "4. BYPLAYER", "BYPLAYER"
+
     location = FK(Location, related_name='locationversions', on_delete=PROTECT)
-    # TODO: czy tu paketyzacja?
-    description = TextField(blank=True, null=True)
-    population = PositiveIntegerField(blank=True, null=True)
-    mainpicture = FK(
+    versionkind = CharField(
+        max_length=15, choices=LocationVersionKind.choices,
+        default=LocationVersionKind.MAIN)
+
+    # versioned stuff
+    picture = FK(
         to=Picture, related_name='locationversions', on_delete=PROTECT,
         blank=True, null=True)
-    comment = TextField(max_length=1000, blank=True, null=True)
-    _createdat = DateTimeField(auto_now_add=True)
-    # TODO players see DISTINCT ON (location) ORDER BY _createdat DESC
+    propername = FK(
+        LocationName, related_name='locationversions', on_delete=PROTECT,
+        blank=True, null=True)
+    descriptivename = CharField(max_length=100, blank=True, null=True)
+    name = CharField(max_length=100)    # redundantne, wygodniejsze od property
+    description = TextField(blank=True, null=True)      # TODO: czy tu paketyzacja?
+    population = PositiveIntegerField(blank=True, null=True)
+
+    knowledges = GenericRelation(Knowledge)
 
     # mainaudio = FK(
     #     to=Audio, related_name='locationversions', on_delete=PROTECT,
@@ -170,13 +179,28 @@ class LocationVersion(Model):
     # audiosets = M2M(AudioSet, related_name='locationversions', blank=True)
     # infopackets = M2M(to=InfoPacket, related_name='locationversions', blank=True)
 
-    knowledges = GenericRelation(Knowledge)
+    _createdby = FK(
+        Character, related_name='createdlocationversions', on_delete=SET_NULL,
+        blank=True, null=True)
+    _createdat = DateTimeField(auto_now_add=True)   # TODO players see DISTINCT ON (location) ORDER BY _createdat DESC
+    _comment = TextField(max_length=1000, blank=True, null=True)
 
     class Meta:
         ordering = ['location', '-_createdat']
 
     def __str__(self):
-        return self.location.name.nominative
+        return self.name
+
+    def save(self, *args, **kwargs):
+        # reevaluate name on each save; called by LocationName.save()
+        self.name = str(self.propername) or self.descriptivename
+
+        # When updating MAIN version, update related model's _mainversionname
+        if self.versionkind == '2. MAIN':
+            self.character._mainversionname = self.fullname
+            self.character.save()
+
+        super().save(*args, **kwargs)
 
     # TODO
     # def get_absolute_url(self):

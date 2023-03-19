@@ -78,17 +78,19 @@ locationnames AS (
 	RETURNING id, nominative
 ),
 ins_locations AS (
-	INSERT INTO locations_location (id, propername_id, descriptivename, name, inlocation_id, locationtype_id)
-	SELECT imported.id, locn.id, CASE WHEN imported.name LIKE '% %' THEN imported.name ELSE NULL END, imported.name,
-		imported.in_location_id, imported.location_type_id
+	INSERT INTO locations_location (id, _mainversionname, inlocation_id, locationtype_id, _createdat)
+	SELECT imported.id, imported.name, imported.in_location_id, imported.location_type_id, current_timestamp
 	FROM imported
-	LEFT JOIN locationnames locn ON locn.nominative = imported.name
 	RETURNING *
 ),
 ins_locationversions AS (
-	INSERT INTO locations_locationversion (location_id, description, mainpicture_id, _createdat)
-	SELECT imported.id, imported.description, pic.id, current_timestamp
+	INSERT INTO locations_locationversion (
+		location_id, propername_id, descriptivename, name,
+		versionkind, description, picture_id, _createdat)
+	SELECT imported.id, locn.id, CASE WHEN imported.name LIKE '% %' THEN imported.name ELSE NULL END, imported.name,
+		'1. MAIN', imported.description, pic.id, current_timestamp
 	FROM imported
+	LEFT JOIN locationnames locn ON locn.nominative = imported.name
 	LEFT JOIN ins_pictures pic ON imported.pictureimageurl = pic.image
   RETURNING *
 )
@@ -100,10 +102,6 @@ SELECT setval('locations_locationversion_id_seq', 1 + (SELECT MAX(id) FROM locat
 
 SELECT * FROM locations_location ll;
 SELECT * FROM locations_locationversion ll;
-
-
-
--- imported Location ==  1:1
 
 
 
