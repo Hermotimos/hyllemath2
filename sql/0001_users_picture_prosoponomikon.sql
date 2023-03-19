@@ -19,7 +19,7 @@ SELECT dblink_connect('hyllemath','host=localhost port=5432 dbname=hyllemath use
 
 
 
--- User, Prof ile ==> User
+-- User, Profile ==> User
 
 INSERT INTO users_user (
     id, username, password, email, first_name, last_name,
@@ -306,7 +306,7 @@ imported AS (
     $$
       SELECT p.id AS profileid, p.image, p.is_alive, p.user_id AS userid,
         c.id AS characterid, c.first_name_id, c.family_name_id, c.cognomen, c.fullname, c.description,
-        c.strength, c.dexterity, c.endurance, c.experience, c.created_by_id, createdby.user_id AS createdbyuserid
+        c.strength, c.dexterity, c.endurance, c.experience, c.created_by_id, createdby.id AS createdbyid
       FROM prosoponomikon_character c
       JOIN users_profile p ON p.id = c.profile_id
       LEFT JOIN users_profile createdby ON createdby.id = c.created_by_id
@@ -315,7 +315,7 @@ imported AS (
     AS imported(
         profileid int, image text, is_alive boolean, userid int,
         characterid int, first_name_id int, family_name_id int, cognomen text, fullname text, description text,
-        strength int, dexterity int, endurance int, experience int, created_by_id int, createdbyuserid int)
+        strength int, dexterity int, endurance int, experience int, created_by_id int, createdbyid int)
 )
 ,
 ins_characters AS (
@@ -339,7 +339,7 @@ INSERT INTO characters_characterversion (
 SELECT characterid, profileid, '2. MAIN', is_alive, FALSE, first_name_id, family_name_id,
   CASE WHEN cognomen LIKE 'z %' OR cognomen LIKE 'ze %' THEN NULL ELSE cognomen END,
   CASE WHEN cognomen LIKE 'z %' OR cognomen LIKE 'ze %' THEN cognomen ELSE NULL END, fullname,
-  description, createdbyuserid, current_timestamp , pic.id
+  description, createdbyid, current_timestamp , pic.id
 FROM imported
 LEFT JOIN ins_pictures pic ON pic.image = imported.image;      -- LEFT dla postaci bez obrazka: utworzone przez graczy lub niedokończone
 
@@ -512,6 +512,13 @@ WHERE c.id = cv.character_id AND cv.versionkind = '2. MAIN';
 
 
 -- ----------------------------------------------------------------------------
+-- Ściągawka Hyllemath 1.0 ==> Hyllemath 2.0
+/*
+ 			User.id 			==> 	User.id
+			Profile.id 		==> 	Character.id
+			Character.id 	==> 	CharacterVersion.id
+
+*/
 -- CHARACTERS TODO:
 /*
   1) zamienić tagi będące nazwą Location na FirstName.locations M2M i tam zrobić update; tak samo FamilyName
@@ -520,6 +527,9 @@ WHERE c.id = cv.character_id AND cv.versionkind = '2. MAIN';
   2) [???] zrobić wersje z isalterego=True (Hagadon, Farkon itd.)
   3) Skopiować wszystkie media/ pliki, zamienić Total Commanderem " " na "_" spacja na podkreślenia,
       żeby pasowały do podmienionych powyżej ścieżek.
+
+  4) Ręcznie uporządkować sytuację z CharacterVersion / Knowledge stworzonymi przez Graczy.
+  		Tam nie powinno być Character żadnego (character_id = NULL dlatego jest nullable).
 
 
 */
