@@ -229,7 +229,7 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
 class KnowledgePassiveInline(CachedFormfieldsFKMixin, GenericTabularInline):
     model = Knowledge
     # fk_name = 'character'
-    verbose_name_plural = "Knowledges (this character version is known by)"
+    verbose_name_plural = "Knowledges (this character version is known by these characters)"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
