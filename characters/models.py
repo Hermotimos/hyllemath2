@@ -10,8 +10,8 @@ from django.db.models import (
 from django.db.models.functions import Collate
 from django.utils.html import format_html
 
-from resources.models import Picture
 from myproject.utils_models import Tag, get_gamemaster, min_max
+from resources.models import Picture
 from users.models import User
 
 
@@ -278,10 +278,8 @@ class CharacterVersion(Model):
     originname = CharField(max_length=50, blank=True, null=True)
     fullname = CharField(max_length=200)    # redundant, handier than property
     description = TextField(max_length=10000, blank=True, null=True)
-
-    knowledges = GenericRelation(Knowledge)
-
-    # frequentedlocations = M2M(to=Location, related_name='characters', blank=True)
+    
+    frequentedlocations = M2M(to="locations.Location", related_name='characters', blank=True)
     # biopackets = M2M(to=BiographyPacket, related_name='characters', blank=True)
     # dialoguepackets = M2M(to=DialoguePacket, related_name='characters', blank=True)
     # subprofessions = M2M(to=SubProfession, related_name='characters', blank=True)
@@ -297,6 +295,8 @@ class CharacterVersion(Model):
         blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
     _comment = TextField(max_length=1000, blank=True, null=True)
+
+    knowledges = GenericRelation(Knowledge)
 
     class Meta:
         ordering = [Collate('fullname', 'pl-PL-x-icu'), "versionkind"]

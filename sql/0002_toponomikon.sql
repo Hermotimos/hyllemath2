@@ -137,6 +137,38 @@ SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters
 
 
 
+-- Character.frequented_locations ==> CharacterVersion.frequentedlocations
+
+INSERT INTO characters_characterversion_frequentedlocations (id, characterversion_id, location_id)
+SELECT * FROM dblink(
+  'hyllemath',
+  $$
+    SELECT id, character_id, location_id
+    FROM prosoponomikon_character_frequented_locations
+  $$)
+	AS imported(id int, character_id int, location_id int);
+
+SELECT setval('characters_characterversion_frequentedlocations_id_seq', 1 + (SELECT MAX(id) FROM characters_characterversion_frequentedlocations));
+
+
+
+-- Character.frequented_locations ==> CharacterVersion.frequentedlocations
+-- (for non-MAIN and non-BYPLAYER versions, created by migration from Acquaintanceships)
+
+INSERT INTO characters_characterversion_frequentedlocations (characterversion_id, location_id)
+SELECT cv.id, location_id
+	-- , cv.fullname AS version_missing_locations_fullname, c."_mainversionname" AS mainversionname, cv2.fullname AS mainversionname2, cvfl.*
+FROM characters_characterversion cv
+JOIN characters_character c ON c.id = cv.character_id
+JOIN characters_characterversion cv2 ON cv2.character_id = c.id
+JOIN characters_characterversion_frequentedlocations cvfl ON cvfl.characterversion_id = cv2.id
+WHERE cv.versionkind NOT IN ('2. MAIN', '6. BYPLAYER')
+	AND cv2.versionkind = '2. MAIN'
+RETURNING *;
+
+SELECT setval('characters_characterversion_frequentedlocations_id_seq', 1 + (SELECT MAX(id) FROM characters_characterversion_frequentedlocations));
+
+
 
 
 
