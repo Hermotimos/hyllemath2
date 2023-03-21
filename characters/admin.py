@@ -9,7 +9,7 @@ from characters.admin_filters import (
     FirstNameGroupOfFirstNameFilter, ParentgroupOfFirstNameGroupFilter,
 )
 from characters.models import  (
-    Character,
+    Character, CharacterKnownCharacterVersion, CharacterKnownLocationVersion,
     CharacterVersion, CharacterVersionTag,
     FamilyName, FamilyNameGroup, FamilyNameTag,
     FirstName, FirstNameGroup, FirstNameTag,
@@ -182,17 +182,6 @@ class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
     readonly_fields = ['fullname']
 
 
-class KnowledgeActiveInline(CachedFormfieldsFKMixin, admin.TabularInline):
-    # Regular admin.TabularInline for this side of the generic relation!
-    model = Knowledge
-    verbose_name_plural = "Knowledges (this character knows these character versions)"
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        qs = qs.prefetch_related('content_object')
-        return qs
-
-
 @admin.register(Character)
 class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
     fieldsets = [
@@ -206,7 +195,7 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
             )
         }),
     ]
-    inlines = [CharacterVersionInline, KnowledgeActiveInline]
+    inlines = [CharacterVersionInline]
     list_display = [
         '_mainversionname', '_versions', 'user',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
@@ -221,6 +210,44 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
         qs = super().get_queryset(request)
         qs = qs.prefetch_related('characterversions')
         return qs
+
+
+#  ------------------------------------------------------------
+
+
+class CharacterKnowledgeAdmin(CustomModelAdmin):
+    fields = ['_mainversionname',]
+    readonly_fields = ['_mainversionname']
+
+
+class ContentTypeKnowledgeInline(CachedFormfieldsFKMixin, admin.TabularInline):
+    content_type_model = ''     # override in concrete implementations
+    model = Knowledge
+    verbose_name_plural = f"{content_type_model} Knowledges"
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.prefetch_related('content_object')
+        qs = qs.filter(content_type__model__iexact=self.content_type_model)
+        return qs
+
+
+@admin.register(CharacterKnownCharacterVersion)
+class CharacterKnownCharacterVersionAdmin(CharacterKnowledgeAdmin):
+
+    class CharacterVersionKnowledgeInline(ContentTypeKnowledgeInline):
+        content_type_model = "CharacterVersion"
+
+    inlines = [CharacterVersionKnowledgeInline]
+
+
+@admin.register(CharacterKnownLocationVersion)
+class CharacterKnownLocationVersionAdmin(CharacterKnowledgeAdmin):
+
+    class LocationVersionKnowledgeInline(ContentTypeKnowledgeInline):
+        content_type_model = "LocationVersion"
+
+    inlines = [LocationVersionKnowledgeInline]
 
 
 #  ------------------------------------------------------------

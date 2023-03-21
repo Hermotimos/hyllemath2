@@ -185,6 +185,20 @@ class Character(Model):
         return f"{self.user.username} - {self.id}"
 
 
+class CharacterKnownCharacterVersion(Character):
+    """A proxy class for a separate AdminModel."""
+
+    class Meta:
+        proxy = True
+
+
+class CharacterKnownLocationVersion(Character):
+    """A proxy class for a separate AdminModel."""
+
+    class Meta:
+        proxy = True
+
+
 #  ------------------------------------------------------------
 
 
