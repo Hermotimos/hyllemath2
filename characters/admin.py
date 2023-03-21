@@ -215,6 +215,12 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
 #  ------------------------------------------------------------
 
 
+# @admin.register(Knowledge)
+# class KnowledgeAdmin(CustomModelAdmin):
+#     pass
+#     # TODO robić to?
+
+
 class CharacterKnowledgeAdmin(CustomModelAdmin):
     fields = ['_mainversionname',]
     readonly_fields = ['_mainversionname']

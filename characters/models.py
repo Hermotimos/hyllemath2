@@ -225,8 +225,8 @@ class Knowledge(Model):
     class Meta:
         indexes = [
             Index(fields=["content_type", "object_id"]),
-            # Index(fields=["character"]),  # TODO sprawdzić czy już nie ma z defaultu
         ]
+        ordering = ['content_type']
 
     def __str__(self):
         return f"{self.character} -> {self.content_object}"

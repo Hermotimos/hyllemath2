@@ -106,6 +106,40 @@ SELECT * FROM locations_locationversion ll;
 
 
 
+-- Location.participants, Location.informees ==> Knowledge (player-created) 3
+
+WITH contenttype AS (
+  SELECT id FROM django_content_type
+  WHERE model = 'locationversion'
+  LIMIT 1
+),
+imported AS (
+  SELECT *
+  FROM dblink(
+    'hyllemath',
+    $$
+      SELECT location_id, profile_id, FALSE
+      FROM toponomikon_location_informees
+      UNION ALL
+      SELECT location_id, profile_id, TRUE
+      FROM toponomikon_location_participants
+    $$)
+    AS imported(location_id int, profileid int, is_direct boolean)
+)
+INSERT INTO characters_knowledge (isdirect, character_id, object_id, content_type_id)
+SELECT DISTINCT ON (imported.location_id, profileid)
+  is_direct, profileid, lver.id, (SELECT id FROM contenttype)
+FROM imported JOIN locations_locationversion lver ON lver.location_id = imported.location_id
+ORDER BY imported.location_id, profileid, is_direct DESC 	-- isdirect = TRUE FIRST: in case of duplicates take direct knowledge in DISTINCT ON
+RETURNING *;
+
+SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters_knowledge));
+
+
+
+
+
+
 -- ----------------------------------------------------------------------------
 -- LOCATIONS TODO:
 /*
