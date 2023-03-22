@@ -85,9 +85,9 @@ ins_locations AS (
 ),
 ins_locationversions AS (
 	INSERT INTO locations_locationversion (
-		location_id, propername_id, descriptivename, name,
+		id, location_id, propername_id, descriptivename, name,
 		versionkind, description, picture_id, _createdat)
-	SELECT imported.id, locn.id, CASE WHEN imported.name LIKE '% %' THEN imported.name ELSE NULL END, imported.name,
+	SELECT imported.id, imported.id, locn.id, CASE WHEN imported.name LIKE '% %' THEN imported.name ELSE NULL END, imported.name,
 		'1. MAIN', imported.description, pic.id, current_timestamp
 	FROM imported
 	LEFT JOIN locationnames locn ON locn.nominative = imported.name
@@ -139,7 +139,7 @@ SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters
 
 -- Character.frequented_locations ==> CharacterVersion.frequentedlocations
 
-INSERT INTO characters_characterversion_frequentedlocations (id, characterversion_id, location_id)
+INSERT INTO characters_characterversion_frequentedlocationversions (id, characterversion_id, locationversion_id)
 SELECT * FROM dblink(
   'hyllemath',
   $$
@@ -148,25 +148,29 @@ SELECT * FROM dblink(
   $$)
 	AS imported(id int, character_id int, location_id int);
 
-SELECT setval('characters_characterversion_frequentedlocations_id_seq', 1 + (SELECT MAX(id) FROM characters_characterversion_frequentedlocations));
+SELECT setval(
+	'characters_characterversion_frequentedlocationversions_id_seq',
+	1 + (SELECT MAX(id) FROM characters_characterversion_frequentedlocationversions));
 
 
 
 -- Character.frequented_locations ==> CharacterVersion.frequentedlocations
 -- (for non-MAIN and non-BYPLAYER versions, created by migration from Acquaintanceships)
 
-INSERT INTO characters_characterversion_frequentedlocations (characterversion_id, location_id)
-SELECT cv.id, location_id
+INSERT INTO characters_characterversion_frequentedlocationversions (characterversion_id, locationversion_id)
+SELECT cv.id, locationversion_id
 	-- , cv.fullname AS version_missing_locations_fullname, c."_mainversionname" AS mainversionname, cv2.fullname AS mainversionname2, cvfl.*
 FROM characters_characterversion cv
 JOIN characters_character c ON c.id = cv.character_id
 JOIN characters_characterversion cv2 ON cv2.character_id = c.id
-JOIN characters_characterversion_frequentedlocations cvfl ON cvfl.characterversion_id = cv2.id
+JOIN characters_characterversion_frequentedlocationversions cvfl ON cvfl.characterversion_id = cv2.id
 WHERE cv.versionkind NOT IN ('2. MAIN', '6. BYPLAYER')
 	AND cv2.versionkind = '2. MAIN'
 RETURNING *;
 
-SELECT setval('characters_characterversion_frequentedlocations_id_seq', 1 + (SELECT MAX(id) FROM characters_characterversion_frequentedlocations));
+SELECT setval(
+	'characters_characterversion_frequentedlocationversions_id_seq',
+	1 + (SELECT MAX(id) FROM characters_characterversion_frequentedlocationversions));
 
 
 

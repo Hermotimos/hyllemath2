@@ -170,14 +170,14 @@ class LocationVersion(Model):
     description = TextField(blank=True, null=True)      # TODO: czy tu paketyzacja?
     population = PositiveIntegerField(blank=True, null=True)
 
-    knowledges = GenericRelation(Knowledge)
-
     # mainaudio = FK(
     #     to=Audio, related_name='locationversions', on_delete=PROTECT,
     #     blank=True, null=True)
     # picturesets = M2M(to=PictureSet, related_name='locationversions', blank=True)
     # audiosets = M2M(AudioSet, related_name='locationversions', blank=True)
     # infopackets = M2M(to=InfoPacket, related_name='locationversions', blank=True)
+
+    knowledges = GenericRelation(Knowledge)
 
     _createdby = FK(
         Character, related_name='createdlocationversions', on_delete=SET_NULL,
@@ -189,7 +189,7 @@ class LocationVersion(Model):
         ordering = ['location', '-_createdat']
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.versionkind[3:]})"
 
     def save(self, *args, **kwargs):
         # reevaluate name on each save; called by LocationName.save()

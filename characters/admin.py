@@ -280,13 +280,13 @@ class CharacterVersionAdmin(CustomModelAdmin):
                 ('firstname', 'familyname', 'nickname', 'originname',),
                 ('_comment', 'versionkind', 'isalive', 'isalterego'),
                 'description',
-                'frequentedlocations',
+                'frequentedlocationversions',
                 'tags',
                 ('_createdat', '_createdby'),
             )
         }),
     ]
-    filter_horizontal = ['frequentedlocations', 'tags']
+    filter_horizontal = ['frequentedlocationversions', 'tags']
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 40})},
         CharField: {'widget': TextInput(attrs={'size': 12})},
