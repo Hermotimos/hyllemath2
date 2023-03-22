@@ -46,26 +46,6 @@ class CharacterVersionDetailView(DetailView):
 # @vary_on_cookie
 @login_required
 @auth_character(['all'])
-def characters_main_view(request):
-    user_character = getattr(request, 'user_character', None)
-
-    characterversions = CharacterVersion.objects.all()
-    if user_character:
-        characterversions = CharacterVersion.objects.filter(knowledges__character=user_character)
-    print(characterversions)
-    context = {
-        'page_title': 'Prosoponomikon',
-        'characterversions': characterversions,
-    }
-    return render(request, 'characters/characterversion_main.html', context)
-
-
-
-
-
-# @vary_on_cookie
-@login_required
-@auth_character(['all'])
 def generic_relations_exemplary_view(request):
     """A temporary view for experimentation with generic relations."""
     user_character = getattr(request, 'user_character', None)

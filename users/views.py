@@ -17,6 +17,7 @@ from users.forms import UserRegistrationForm, UserUpdateForm, UserImageUpdateFor
 
 
 class CustomLoginView(LoginView):
+    extra_context = {'page_title': 'Logowanie'}
     template_name = 'users/login.html'
     # settings.py
     # LOGIN_REDIRECT_URL = 'users:home'
@@ -29,13 +30,7 @@ class CustomLoginView(LoginView):
         # provide 'character_id' to session
         user_current_character = user.characters.order_by('-_createdat').first()
         self.request.session['character_id'] = user_current_character.id
-
         return HttpResponseRedirect(self.get_success_url())
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['page_title'] = 'Logowanie'
-        return context
 
     # def get(self, request, *args, **kwargs):
     #     """Override method to handle situation when 'go back' browser button is
