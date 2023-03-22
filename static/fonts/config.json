@@ -1,0 +1,336 @@
+{
+  "name": "",
+  "css_prefix_text": "icon-",
+  "css_use_suffix": false,
+  "hinting": true,
+  "units_per_em": 1000,
+  "ascent": 850,
+  "glyphs": [
+    {
+      "uid": "7a28aa6102a24e347089c50a2e691fe8",
+      "css": "inform",
+      "code": 59393,
+      "src": "custom_icons",
+      "selected": true,
+      "svg": {
+        "path": "M620 722Q800 786 800 844L800 950 0 950 0 748Q36 734 82 722 176 688 211 653T246 558Q246 536 223 510T192 436Q190 424 169 411T144 350Q144 334 149 324T158 312L162 308Q154 258 150 220 144 166 190 108T350 50 510 108 552 220L538 308Q556 316 556 350 554 378 547 393T533 410 519 418 510 436Q500 482 477 509T454 558Q454 618 490 653T620 722ZM850 450L1000 450 1000 550 850 550 850 700 750 700 750 550 600 550 600 450 750 450 750 300 850 300 850 450Z",
+        "width": 1000
+      },
+      "search": [
+        "user-add"
+      ]
+    },
+    {
+      "uid": "8a470772d819b2e4b5eb45c588832a46",
+      "css": "note",
+      "code": 59395,
+      "src": "custom_icons",
+      "selected": true,
+      "svg": {
+        "path": "M18 166Q18 109 74 109T130 166Q130 221 74 221T18 166ZM18 389Q18 332 74 332T130 389Q130 444 74 444T18 389ZM18 612Q18 556 74 556T130 612Q130 667 74 667T18 612ZM18 835Q18 779 74 779T130 835Q130 891 74 891T18 835ZM241 221L241 109 911 109 911 221 241 221ZM241 444L241 332 911 332 911 444 241 444ZM241 667L241 556 911 556 911 667 241 667ZM241 891L241 779 911 779 911 891 241 891Z",
+        "width": 928
+      },
+      "search": [
+        "list"
+      ]
+    },
+    {
+      "uid": "342e82ec07ec65cfda511c5ae0f56597",
+      "css": "edit",
+      "code": 59396,
+      "src": "custom_icons",
+      "selected": true,
+      "svg": {
+        "path": "M0 1000L0 0 646 0 482 164 164 164 164 836 836 836 836 517 1000 353 1000 1000 0 1000ZM363 637L363 519 369 519Q408 517 441 549 480 588 480 637L363 637ZM414 461L781 94 906 219 539 586ZM811 64L875 0 1000 125 936 189Z",
+        "width": 1000
+      },
+      "search": [
+        "edit-alt"
+      ]
+    },
+    {
+      "uid": "a6c18105ddc3e42718d81ef8e59603da",
+      "css": "parent-obj",
+      "code": 59397,
+      "src": "custom_icons",
+      "selected": true,
+      "svg": {
+        "path": "M911 834L799 947 409 555 241 723 18 53 688 276 521 443Z",
+        "width": 928
+      },
+      "search": [
+        "cursor"
+      ]
+    },
+    {
+      "uid": "4d2dfc45d8176b1f26aed973fa84a91e",
+      "css": "biography-packet",
+      "code": 59398,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "9a76bc135eac17d2c8b8ad4a5774fc87",
+      "css": "download",
+      "code": 59392,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "b013f6403e5ab0326614e68d1850fd6b",
+      "css": "resize-full-alt",
+      "code": 61618,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "3212f42c65d41ed91cb435d0490e29ed",
+      "css": "flash",
+      "code": 59394,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "266d5d9adf15a61800477a5acf9a4462",
+      "css": "chart-bar",
+      "code": 59399,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "dec0ce0476433f7e49e096526cf89465",
+      "css": "hammer",
+      "code": 59400,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "f85affb51c357be83d187344c8c6e35c",
+      "css": "diamond",
+      "code": 61977,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "34cb6ce62bf3f1efd59e2f5eb0d79f82",
+      "css": "wechat",
+      "code": 61911,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "ff1710a605b3fc98346903db89034558",
+      "css": "balance-scale",
+      "code": 62030,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "9dfee680431bb2f9cc4485bfa4d982ac",
+      "css": "hourglass-o",
+      "code": 62032,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "8bc4e828380b962c8b5a04ee982f1d71",
+      "css": "hourglass-1",
+      "code": 62033,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "f70af5dd0ecd154b007d980cd011a7f7",
+      "css": "hourglass-2",
+      "code": 62034,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "423dee39096bacea6b9e3b00919b983c",
+      "css": "hourglass-3",
+      "code": 62035,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "bc9b0a766409e4ddeb2e9745c3e8130c",
+      "css": "hourglass",
+      "code": 62036,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "2f87e74e6eb8d985044bf7f3c47cb50b",
+      "css": "odnoklassniki",
+      "code": 62051,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "94aa5db477515f1da4ce43b239badb9e",
+      "css": "map-signs",
+      "code": 62071,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "53c28626072159c49f33b71d67138ad9",
+      "css": "commenting",
+      "code": 62074,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "9fecfcfe680a469caedeeb40641a479f",
+      "css": "handshake-o",
+      "code": 62133,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "8dc7142e4848751b5d2b0200ba77b991",
+      "css": "free-code-camp",
+      "code": 62149,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "56f2eac13d2b397ff4a54dc38f783b95",
+      "css": "snowflake-o",
+      "code": 62172,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "fda731b5a4026685e1a9c7e64228e2b2",
+      "css": "note-beamed",
+      "code": 59401,
+      "src": "entypo"
+    },
+    {
+      "uid": "a66cdc7278e6b33b8bd44a141f5e1a8d",
+      "css": "plus-circled",
+      "code": 59402,
+      "src": "entypo"
+    },
+    {
+      "uid": "8beac4a5fd5bed9f82ca7a96cc8ba218",
+      "css": "key",
+      "code": 59403,
+      "src": "entypo"
+    },
+    {
+      "uid": "c8585e1e5b0467f28b70bce765d5840c",
+      "css": "docs",
+      "code": 61637,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "347c38a8b96a509270fdcabc951e7571",
+      "css": "database-backup",
+      "code": 61888,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "bf882b30900da12fca090d9796bc3030",
+      "css": "demand",
+      "code": 59404,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "d218294e6f9f7191f6b0b3d1ff6239ff",
+      "css": "unfollow",
+      "code": 59406,
+      "src": "elusive"
+    },
+    {
+      "uid": "c5fd349cbd3d23e4ade333789c29c729",
+      "css": "follow",
+      "code": 59405,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "d6944e1d9af302093d43b299bbecbbbe",
+      "css": "hash",
+      "code": 59407,
+      "src": "iconic"
+    },
+    {
+      "uid": "4109c474ff99cad28fd5a2c38af2ec6f",
+      "css": "filter",
+      "code": 61616,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "2c576f7c6c3233c31abad0899fc9f4af",
+      "css": "user",
+      "code": 59408,
+      "src": "elusive"
+    },
+    {
+      "uid": "2c413e78faf1d6631fd7b094d14c2253",
+      "css": "cloud",
+      "code": 59409,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "de2fc7a5c986ab8c622f63455d7cf814",
+      "css": "upload-cloud",
+      "code": 61678,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "a73c5deb486c8d66249811642e5d719a",
+      "css": "update",
+      "code": 59410,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "f5999a012fc3752386635ec02a858447",
+      "css": "download-cloud",
+      "code": 61677,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "3ab2abf6f936d3e53ee8c184cedaed82",
+      "css": "clear-cache",
+      "code": 59411,
+      "src": "elusive"
+    },
+    {
+      "uid": "d5fabfa46384953ae055fceacb2229a7",
+      "css": "arrows-cw",
+      "code": 59412,
+      "src": "elusive"
+    },
+    {
+      "uid": "3d39c828009c04ddb6764c0b04cd2439",
+      "css": "forward",
+      "code": 59413,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "40e6373161a67528a2871603605e279d",
+      "css": "share",
+      "code": 59394,
+      "src": "custom_icons",
+      "selected": false,
+      "svg": {
+        "path": "M0 971Q0 828 24 715T84 529 179 405 286 329 408 291 522 276 629 274L629 29 1000 401 629 772 629 504Q527 504 478 505T352 515 238 541 152 592 78 675 31 799 0 971Z",
+        "width": 1000
+      },
+      "search": [
+        "share"
+      ]
+    },
+    {
+      "uid": "0d5c96778a8d00b0aefb615a7ae5b81b",
+      "css": "up-bold",
+      "code": 59397,
+      "src": "custom_icons",
+      "selected": false,
+      "svg": {
+        "path": "M0 568L397 32 791 568H575V969H216V568H0Z",
+        "width": 791
+      },
+      "search": [
+        "up-bold"
+      ]
+    },
+    {
+      "uid": "954a69d3f61d3af27227550596a0a31b",
+      "css": "link-ext",
+      "code": 61582,
+      "src": "custom_icons",
+      "selected": false,
+      "svg": {
+        "path": "M786 518V696Q786 763 739 810T625 857H161Q94 857 47 810T0 696V232Q0 166 47 119T161 71H554Q561 71 566 76T571 89V125Q571 133 566 138T554 143H161Q124 143 98 169T71 232V696Q71 733 98 759T161 786H625Q662 786 688 759T714 696V518Q714 510 719 505T732 500H768Q776 500 781 505T786 518ZM1000 36V321Q1000 336 989 346T964 357 939 346L841 248 477 612Q472 618 464 618T452 612L388 548Q382 543 382 536T388 523L752 159 654 61Q643 50 643 36T654 11 679 0H964Q979 0 989 11T1000 36Z",
+        "width": 1000
+      },
+      "search": [
+        "link-ext"
+      ]
+    }
+  ]
+}

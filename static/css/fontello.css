@@ -1,0 +1,98 @@
+@font-face {
+  font-family: 'fontello';
+  src: url('../font/fontello.eot?43845959');
+  src: url('../font/fontello.eot?43845959#iefix') format('embedded-opentype'),
+       url('../font/fontello.woff2?43845959') format('woff2'),
+       url('../font/fontello.woff?43845959') format('woff'),
+       url('../font/fontello.ttf?43845959') format('truetype'),
+       url('../font/fontello.svg?43845959#fontello') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+/* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
+/* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
+/*
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: 'fontello';
+    src: url('../font/fontello.svg?43845959#fontello') format('svg');
+  }
+}
+*/
+[class^="icon-"]:before, [class*=" icon-"]:before {
+  font-family: "fontello";
+  font-style: normal;
+  font-weight: normal;
+  speak: never;
+
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+  /* opacity: .8; */
+
+  /* For safety - reset parent styles, that can break glyph codes*/
+  font-variant: normal;
+  text-transform: none;
+
+  /* fix buttons height, for twitter bootstrap */
+  line-height: 1em;
+
+  /* Animation center compensation - margins should be symmetric */
+  /* remove if not needed */
+  margin-left: .2em;
+
+  /* you can be more comfortable with increased icons size */
+  /* font-size: 120%; */
+
+  /* Font smoothing. That was taken from TWBS */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Uncomment for 3D effect */
+  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+}
+
+.icon-download:before { content: '\e800'; } /* '' */
+.icon-inform:before { content: '\e801'; } /* '' */
+.icon-flash:before { content: '\e802'; } /* '' */
+.icon-note:before { content: '\e803'; } /* '' */
+.icon-edit:before { content: '\e804'; } /* '' */
+.icon-parent-obj:before { content: '\e805'; } /* '' */
+.icon-biography-packet:before { content: '\e806'; } /* '' */
+.icon-chart-bar:before { content: '\e807'; } /* '' */
+.icon-hammer:before { content: '\e808'; } /* '' */
+.icon-note-beamed:before { content: '\e809'; } /* '' */
+.icon-plus-circled:before { content: '\e80a'; } /* '' */
+.icon-key:before { content: '\e80b'; } /* '' */
+.icon-demand:before { content: '\e80c'; } /* '' */
+.icon-follow:before { content: '\e80d'; } /* '' */
+.icon-unfollow:before { content: '\e80e'; } /* '' */
+.icon-hash:before { content: '\e80f'; } /* '' */
+.icon-user:before { content: '\e810'; } /* '' */
+.icon-cloud:before { content: '\e811'; } /* '' */
+.icon-update:before { content: '\e812'; } /* '' */
+.icon-clear-cache:before { content: '\e813'; } /* '' */
+.icon-arrows-cw:before { content: '\e814'; } /* '' */
+.icon-forward:before { content: '\e815'; } /* '' */
+.icon-filter:before { content: '\f0b0'; } /* '' */
+.icon-resize-full-alt:before { content: '\f0b2'; } /* '' */
+.icon-docs:before { content: '\f0c5'; } /* '' */
+.icon-download-cloud:before { content: '\f0ed'; } /* '' */
+.icon-upload-cloud:before { content: '\f0ee'; } /* '' */
+.icon-database-backup:before { content: '\f1c0'; } /* '' */
+.icon-wechat:before { content: '\f1d7'; } /* '' */
+.icon-diamond:before { content: '\f219'; } /* '' */
+.icon-balance-scale:before { content: '\f24e'; } /* '' */
+.icon-hourglass-o:before { content: '\f250'; } /* '' */
+.icon-hourglass-1:before { content: '\f251'; } /* '' */
+.icon-hourglass-2:before { content: '\f252'; } /* '' */
+.icon-hourglass-3:before { content: '\f253'; } /* '' */
+.icon-hourglass:before { content: '\f254'; } /* '' */
+.icon-odnoklassniki:before { content: '\f263'; } /* '' */
+.icon-map-signs:before { content: '\f277'; } /* '' */
+.icon-commenting:before { content: '\f27a'; } /* '' */
+.icon-handshake-o:before { content: '\f2b5'; } /* '' */
+.icon-free-code-camp:before { content: '\f2c5'; } /* '' */
+.icon-snowflake-o:before { content: '\f2dc'; } /* '' */

@@ -64,7 +64,6 @@
     <script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}" defer></script>
 
 
-
     <title>
         {% firstof page_title 'Hyllemath' %}
     </title>
@@ -75,12 +74,14 @@
   </head>
 
 
+
   <body>
+
     <!--  NAVBAR  -->
     {% if user.is_authenticated %}
-    <header class="site-header">
-      {% include 'navbar.html' %}
-    </header>
+      <header class="site-header">
+        {% include 'navbar.html' %}
+      </header>
     {% endif %}
 
     <main class="container px-sm-2 pt-2">
@@ -98,9 +99,9 @@
 
           {% if messages %}
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} mb-0">
-              {{ message }}
-            </div>
+              <div class="alert alert-{{ message.tags }} mb-0">
+                {{ message }}
+              </div>
             {% endfor %}
           {% endif %}
 
@@ -109,9 +110,9 @@
         </div>
 
         {% if user.is_authenticated %}
-        <div class="col-md-3 pl-sm-5">
-          {% include 'sidebar.html' %}
-        </div>
+          <div class="col-md-3 pl-sm-5">
+            {% include 'sidebar.html' %}
+          </div>
         {% endif %}
 
         <!--   SCROLL-UP BUTTON   -->
@@ -124,10 +125,9 @@
     </main>
 
 
-
-
     {% block javascript %}
     {% endblock javascript %}
+
   </body>
 
 </html>

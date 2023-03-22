@@ -1,0 +1,664 @@
+
+
+/*****************************************************************************/
+/************************* SITE LAYOUT, TEXT & FONT **************************/
+/*****************************************************************************/
+
+@import "normalize.css";
+
+
+/* Ensure fonts are available independently from those installed on user's machine */
+@font-face {
+    font-family: 'IM Fell Great Primer';
+    src: url("../font/IMFellGreatPrimer-Regular.ttf");
+}
+
+* {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+
+    font-family: 'IM Fell Great Primer';
+    line-height: 1.5;
+}
+
+body {
+    background: #fafafa;
+    margin-top: 4rem;
+    color: #444444;
+}
+
+
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+}
+
+.small-caps {
+    font-variant: small-caps;
+}
+
+
+/* Fontello font-icons */
+.icon-medium {font-size: 0.8rem;}
+.icon-small {font-size: 0.6rem;}
+
+
+
+.text-orange {color: #d7a40c;}
+.text-green {color: #008000;}
+.text-red1 {color: #993300;}
+.text-red2 {color: #C70039;}
+.text-blue1 {color: #b3cde0;}
+.text-blue2 {color: #6497b1;}
+.text-blue3 {color: #005b96;}
+.text-blue4 {color: #03396c;}
+.text-blue5 {color: #011f4b;}
+
+
+
+
+@media only screen and (min-width: 600px) {
+    .sm-nowrap {white-space: nowrap;}
+}
+
+
+th.orientation-rl-tb {
+    writing-mode: vertical-rl;
+    transform:scale(-1);
+    vertical-align: top !important;
+}
+
+
+
+
+/* TODO replace .smaller with font-N classes */
+small.smaller {font-size: 12px;}
+/* END TODO */
+
+.font-10 {font-size: 0.625rem;}
+.font-11 {font-size: 0.7rem;}   /* not exactly, but this is desirable */
+.font-12 {font-size: 0.75rem;}
+.font-13 {font-size: 0.8125rem;}
+.font-14 {font-size: 0.875rem;}
+.font-15 {font-size: 0.9375rem;}
+.font-16 {font-size: 1rem;}
+.font-17 {font-size: 1.0625rem;}
+.font-18 {font-size: 1.125rem;}
+
+
+.font-24 {font-size: 1.5rem;}
+.font-25 {font-size: 1.562rem;}
+.font-30 {font-size: 1.875rem;}
+.font-40 {font-size: 2.5rem;}
+.font-50 {font-size: 3.125rem;}
+/*
+19px 	1.1875rem
+20px 	1.25rem
+21px 	1.3125rem
+22px 	1.375rem
+23px 	1.4375rem
+24px 	1.5rem
+*/
+
+/* Responsive font: font-resp-15 ending for font with 1.5rem for full screen */
+@media only screen and (max-width: 600px) {
+    .font-resp-15 {font-size: 0.9rem !important;}
+}
+@media only screen and (min-width: 601px) {
+    .font-resp-15 {font-size: 1.1rem !important;}
+}
+@media only screen and (min-width: 900px) {
+    .font-resp-15 {font-size: 1.3rem !important;}
+}
+@media only screen and (min-width: 1200px) {
+    .font-resp-15 {font-size: 1.5rem !important;}
+}
+
+
+
+
+
+/* Page title */
+
+.page-title {line-height: 1;}
+
+@media only screen and (max-width: 600px) {
+    .header-img {
+        height: 4rem;
+        width: 4rem;
+    }
+    .page-title {
+        font-size: 1.6rem;
+    }
+    .header-title {
+        font-size: 1.4rem;
+    }
+}
+@media only screen and (min-width: 601px) {
+    .header-img {
+        height: 6.25rem;
+        width: 6.25rem;
+    }
+    .page-title {
+        font-size: 2.62rem;
+    }
+    .header-title {
+        font-size: 1.5rem;
+    }
+}
+/* END Page title */
+
+
+
+
+.border-bottom-dark {border-bottom: 1px solid #444444;}
+
+
+.pt-6, .py-6 {padding-top: 5rem !important;}
+.pr-6, .px-6 {padding-right: 5rem !important;}
+.pb-6, .py-6 {padding-bottom: 5rem !important;}
+.pl-6, .px-6 {padding-left: 5rem !important;}
+
+.pt-7, .py-7 {padding-top: 6rem !important;}
+.pr-7, .px-7 {padding-right: 6rem !important;}
+.pb-7, .py-7 {padding-bottom: 6rem !important;}
+.pl-7, .px-7 {padding-left: 6rem !important;}
+
+.pt-3_9rem, .py-3_9rem {padding-top: 3.9rem !important;}
+.pr-3_9rem, .px-3_9rem {padding-right: 3.9rem !important;}
+.pb-3_9rem, .py-3_9rem {padding-bottom: 3.9rem !important;}
+.pl-3_9rem, .px-3_9rem {padding-left: 3.9rem !important;}
+
+.pt-4_7rem, .py-3_9rem {padding-top: 4.7rem !important;}
+.pr-4_7rem, .px-3_9rem {padding-right: 4.7rem !important;}
+.pb-4_7rem, .py-3_9rem {padding-bottom: 4.7rem !important;}
+.pl-4_7rem, .px-3_9rem {padding-left: 4.7rem !important;}
+
+
+td.align-center {text-align: center;}
+td.align-right {text-align: right;}
+
+
+
+.border-double {
+    border: double #444444;
+}
+
+
+
+
+
+/* For Django linebreaksbr template tag */
+br {
+    content: " ";       /* for Chrome to avoid too big spaces */
+    margin-top: 0.4rem;
+    display: block;
+}
+
+
+
+article.content {min-height: 700px}
+article.top-space {margin-top: 5rem;}
+article.top-button {margin-top: 0.5rem;}
+
+
+.bg-gray {background-color: #f2f2f2;}
+
+.gray1 {color: #acadad !important;}
+
+
+
+.pt-01 {padding-top: 0.1rem}
+
+
+
+
+
+
+/*****************************************************************************/
+/********************************* IMAGES ***********************************/
+/*****************************************************************************/
+
+img {border: double #444444;}
+
+/*
+Exclude image inspection to prevent viewing of their original files.
+Needed for grayscaled images.
+*/
+img {pointer-events: none;}
+
+
+/*
+    Make figure with class .pointer show pointer on hover.
+    This allows pointer over img tags (that have pointer-events: none).
+*/
+figure.pointer,
+div.pointer,
+span.pointer {cursor: pointer;}
+
+.portrait {
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+.img-xl {height: 5rem;}
+.img-lg {height: 4.2rem;}
+.img-md {height: 2.5rem;}
+.img-sm {height: 1.875rem;}
+.img-xs {height: 1.25rem;}
+.img-xxs {height: 0.9rem;}
+
+@media only screen and (max-width: 600px) {
+    .img-xl {height: 4rem;}
+}
+
+
+img.img-grayscale {filter: grayscale(100%) !important;}
+img.img-grayscale:hover {filter: grayscale(0%);}
+
+/* Image zoom on hover */
+.img-hover-zoom {
+    position: relative;
+    /*margin: auto;*/
+    overflow: hidden;
+}
+.img-hover-zoom img {
+    max-width: 100%;
+    transition: all 1s;
+    display: block;
+    width: 100%;
+    height: auto;
+    transform: scale(1);
+    border-style: none;
+}
+.img-hover-zoom:hover img {
+    transform: scale(1.2);
+}
+/* END Image zoom on hover */
+
+
+@media only screen and (min-width: 320px) {
+    div.img-hover-zoom {margin: 0.1rem}
+}
+@media only screen and (min-width: 600px) {
+    div.img-hover-zoom {margin: 0.15rem}
+}
+
+
+
+
+/* Prosoponomikon-based images, but used throughout the site */
+
+@media only screen and (min-width: 0px) {
+    img.character-detail {
+        width: 50rem;
+        max-width: 100%;
+    }
+}
+@media only screen and (min-width: 576px) {
+    img.character-detail {
+        max-width: 20rem;
+        margin-right: 1rem;
+    }
+}
+
+
+@media only screen and (min-width: 0px) {
+    span.character-name {font-size: 1.4rem;}
+}
+@media only screen and (min-width: 600px) {
+    span.character-name {font-size: 1.5rem;}
+}
+@media only screen and (min-width: 1000px) {
+    span.character-name {font-size: 1.6rem;}
+}
+@media only screen and (min-width: 1200px) {
+    span.character-name {font-size: 1.9rem;}
+}
+
+
+
+
+/* Required for img modal to show only imgs and center them on the screen */
+.img-modal .modal-dialog {
+    text-align:center;
+    max-width:100rem;
+    margin-top:5rem;
+}
+.img-modal .modal-content {
+    display:inline-block;
+    width:auto;
+    max-width:100rem;
+}
+.img-modal .modal-body {
+    background-color: none;
+    padding: 0;
+}
+.img-modal .modal-body img {
+    max-height: 50rem;
+}
+@media only screen and (max-width: 600px) {
+    .img-modal .modal-body img {
+        max-height: 60rem;
+        max-width: 19rem;
+    }
+}
+.modal-backdrop {opacity:0.9 !important;}
+
+
+/* Image in modal */
+.modal-img img {
+    max-width: 100%;
+    max-height: 330px;
+}
+
+
+
+
+
+
+
+/*****************************************************************************/
+/************************** LINKS & COLLAPSIBLES *****************************/
+/*****************************************************************************/
+
+a {color: #444444;}
+
+a:hover {
+    text-decoration: none;
+    color: #3366cc;
+}
+
+.hover-pointer li:hover, a:hover {cursor: pointer;}
+
+td.hover-pointer:hover {cursor: pointer;}
+
+
+.hover-blue:hover {
+    color: #3366cc;
+    cursor: pointer;
+}
+.hover-pointer:hover {
+    cursor: pointer;
+}
+
+a.text-muted:hover {color: #3366cc !important;}
+
+a.hover-noeffect:hover {pointer-events: none !important;}
+
+
+
+/*****************************************************************************/
+/********************************** FORMS ************************************/
+/*****************************************************************************/
+
+.multiselect-form-small select {
+    min-height: 150px;
+    width: 400px;
+}
+
+.forms td {
+    vertical-align: top;
+    padding: 2px 10px;
+}
+
+/* crispy-forms for ItemFormset */
+.item-formset .form-group {margin: 0.1rem !important;}
+.item-formset textarea.form-control {height: 2.3rem;}
+.item-formset textarea.form-control[id*='info'] {font-style: italic; font-size: 0.8rem;}
+.item-formset select {padding-left: 0.2rem;}
+.item-formset input.checkboxinput {max-width: 1rem;}
+.item-formset input.numberinput {
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
+    font-size: 0.8rem;
+}
+
+
+/*****************************************************************************/
+/********************************** LISTS ************************************/
+/*****************************************************************************/
+
+ul.bullets-1 li {list-style: "✧";}
+ul.bullets-2 li {list-style: "✵";}
+ul.bullets-3 li {list-style: "❖";}
+ul.bullets-4 li {list-style: "•";}
+ul.bullets-5 li {list-style: "✰";}
+
+
+nav ul.bullets-1 {margin-bottom: 0.5rem;}
+nav ul.bullets-1 li {color: #cbd5db;}
+
+.bullets-sm li::marker {font-size: 70%;}
+.bullets-lg li::marker {font-size: 120%;}
+.bullets-xl li::marker {font-size: 140%;}
+
+.pl-0-05  {padding-left: 0.05rem;}
+.pl-0-10  {padding-left: 0.10rem;}
+.pl-0-15  {padding-left: 0.15rem;}
+.pl-0-20  {padding-left: 0.20rem;}
+
+
+li a {vertical-align: middle;}
+
+li.index a {vertical-align: bottom;}
+
+
+/*****************************************************************************/
+/*********************************** TABS ************************************/
+/*****************************************************************************/
+
+/* Tab Source: https://codepen.io/markcaron/pen/MvGRYV */
+
+/* Tab main interaction */
+.tabset > input[type="radio"] {
+    position: absolute;
+    left: -200vw;
+}
+
+.tabset .tab-panel {display: none;}
+
+.tabset > input:first-child:checked ~ .tab-panels > .tab-panel:first-child,
+.tabset > input:nth-child(3):checked ~ .tab-panels > .tab-panel:nth-child(2),
+.tabset > input:nth-child(5):checked ~ .tab-panels > .tab-panel:nth-child(3),
+.tabset > input:nth-child(7):checked ~ .tab-panels > .tab-panel:nth-child(4),
+.tabset > input:nth-child(9):checked ~ .tab-panels > .tab-panel:nth-child(5),
+.tabset > input:nth-child(11):checked ~ .tab-panels > .tab-panel:nth-child(6) {
+    display: block;
+}
+
+/* Tab Styling */
+.tabset > input:checked + label {border-color: #ccc;}
+.tabset > label:hover {color: #06c;}
+.tabset > label {
+    position: relative;
+    display: inline-block;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Adds bottom border to tabs with multiline headers*/
+.tabset.multiline-header > label {
+    border-bottom: 1px solid transparent;
+}
+
+.tab-panel {
+    padding: 1rem 0rem;
+    border-top: 1px solid #ccc;
+}
+
+
+@media only screen and (max-width: 600px) {
+    label.resp-tab-label {padding: 7px 7px 5px;}
+}
+@media only screen and (min-width: 601px) {
+    label.resp-tab-label {padding: 9px 9px 6px;}
+}
+@media only screen and (min-width: 901px) {
+    label.resp-tab-label {padding: 12px 12px 8px;}
+}
+@media only screen and (min-width: 1201px) {
+    label.resp-tab-label {padding: 15px 15px 10px;}
+}
+
+
+/* This is not tabs, but has similar styling and is used together */
+@media only screen and (max-width: 600px) {
+    div.card-header-resp {padding: 4px 15px !important;}
+}
+@media only screen and (min-width: 601px) {
+    div.card-header-resp {padding: 9px 15px !important;}
+}
+@media only screen and (min-width: 901px) {
+    div.card-header-resp {padding: 12px 15px !important;}
+}
+@media only screen and (min-width: 1201px) {
+    div.card-header-resp {padding: 10px 15px !important;}
+}
+
+
+
+
+
+
+
+/*****************************************************************************/
+/************************* MODAL WITH INFORM FORM ****************************/
+/*****************************************************************************/
+
+
+/* Inform form */
+input.select-profile[type=checkbox] {display:none;}
+input.select-profile[type=checkbox] + label img:hover {cursor: pointer;}
+
+input.select-profile[type=checkbox] + label {
+    filter: saturate(25%) opacity(70%);
+    display:inline-block;
+}
+
+input.select-profile[type=checkbox]:checked + label {
+    filter: grayscale(0%);
+    display:inline-block;
+}
+
+
+
+
+
+/*****************************************************************************/
+/********************************** SKILLS ***********************************/
+/*****************************************************************************/
+
+
+@media only screen and (min-width: 0px) {
+    .skill-or-synergy-name {font-size: 1.1rem;}
+    .img-skill {
+        height: 2rem;
+        width: 2rem;
+    }
+}
+@media only screen and (min-width: 600px) {
+    .skill-or-synergy-name {font-size: 1.5rem;}
+    .img-skill {
+        height: 2.5rem;
+        width: 2.5rem;
+    }
+}
+@media only screen and (min-width: 1000px) {
+    .skill-or-synergy-name {font-size: 1.8rem;}
+    .img-skill {
+        height: 3rem;
+        width: 3rem;
+    }
+}
+@media only screen and (min-width: 1200px) {
+    .skill-or-synergy-name {font-size: 2.1rem;}
+    .img-skill {
+        height: 3.75rem;
+        width: 3.75rem;
+    }
+}
+
+
+/*****************************************************************************/
+/********************************** VARIA ************************************/
+/*****************************************************************************/
+/*
+Needed for the links anchored in GameEvents in Chronicle, Remarks in Debates
+and others to preserve proper position, not affected by the navbar covering
+the top of the page.
+*/
+
+a.anchor {
+    display: block;
+    position: relative;
+    visibility: hidden;
+}
+a.anchor2 {top: -2rem;}
+a.anchor3 {top: -3rem;}
+a.anchor4 {top: -4rem;}
+a.anchor6 {top: -6rem;}
+a.anchor7 {top: -7rem;}
+a.anchor8 {top: -8rem;}
+a.anchor10 {top: -10rem;}
+
+a.anchor6-resp {top: -6rem;}
+a.anchor7-resp {top: -7rem;}
+a.anchor8-resp {top: -8rem;}
+a.anchor10-resp {top: -10rem;}
+a.anchor12-resp {top: -12rem;}
+
+/* Necessary on mobile when Prosoponomikon sticky-menu on top is compressed to more rows */
+@media only screen and (max-width: 600px) {
+    a.anchor6-resp {top: -8rem;}
+    a.anchor7-resp {top: -9rem;}
+    a.anchor8-resp {top: -10rem;}
+    a.anchor10-resp {top: -12rem;}
+    a.anchor12-resp {top: -14rem;}
+}
+
+
+.content-section {
+    background: #ffffff;
+    padding: 10px 20px;
+    border: 1px solid #dddddd;
+    border-radius: 3px;
+}
+
+.border-none {
+    border: none !important;
+}
+
+
+
+/* Buttons placed on images in Toponomikon, Prosoponomikon etc. */
+div.image-with-btns {
+  position: relative;
+  display: inline-block;
+}
+.overlay {
+  position: absolute;
+  left: 0;
+  z-index: 5;
+}
+
+
+/* Scrollup feature */
+.scrollup {
+    width: 64px;
+    height: 64px;
+    text-decoration: none;
+    background: url('/static/img/up.png') 0px 0px;
+    background-size: cover;
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    display: none;
+}
