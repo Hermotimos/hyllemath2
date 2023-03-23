@@ -10,7 +10,7 @@ urlpatterns = [
         name='characterversion-list'
     ),
     path(
-        'characterversion/<int:characterversion_id>/',
+        'characterversion/<int:pk>/',
         views.CharacterVersionDetailView.as_view(),
         name='characterversion-detail'
     ),

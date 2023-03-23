@@ -16,7 +16,7 @@ from characters.models import  (
     Knowledge,
 )
 from myproject.utils_admin import (
-    CustomModelAdmin, CachedFormfieldsFKMixin, CachedFormfieldsAllMixin,
+    CustomModelAdmin, CachedFKFormfieldMixin, CachedFormfieldsAllMixin,
     TagAdminForm, VersionedAdminMixin,
 )
 
@@ -169,17 +169,17 @@ class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
     fields = [
         'fullname', 'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
-        'description',
+        'description', '_comment', '_createdat'
     ]
     formfield_overrides = {
-        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
+        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 45})},
         CharField: {'widget': TextInput(attrs={'size': 15})},
         ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
     }
     model = CharacterVersion
     extra = 1
     fk_name = 'character'
-    readonly_fields = ['fullname']
+    readonly_fields = ['fullname', '_createdat']
 
 
 @admin.register(Character)
@@ -226,7 +226,7 @@ class CharacterKnowledgeAdmin(CustomModelAdmin):
     readonly_fields = ['_mainversionname']
 
 
-class ContentTypeKnowledgeInline(CachedFormfieldsFKMixin, admin.TabularInline):
+class ContentTypeKnowledgeInline(CachedFKFormfieldMixin, admin.TabularInline):
     content_type_model = ''     # override in concrete implementations
     model = Knowledge
     verbose_name_plural = f"{content_type_model} Knowledges"
@@ -259,7 +259,7 @@ class CharacterKnownLocationVersionAdmin(CharacterKnowledgeAdmin):
 #  ------------------------------------------------------------
 
 
-class KnowledgePassiveInline(CachedFormfieldsFKMixin, GenericTabularInline):
+class KnowledgePassiveInline(CachedFKFormfieldMixin, GenericTabularInline):
     model = Knowledge
     # fk_name = 'character'
     verbose_name_plural = "Knowledges (this character version is known by these characters)"

@@ -1,5 +1,7 @@
 from django.contrib.admin import ModelAdmin
-from django.forms import ModelForm, TextInput
+from django.db.models import ForeignKey, ManyToManyField
+from django.forms import ModelChoiceField, ModelForm, TextInput
+from django.http import HttpRequest
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.http import urlencode
@@ -8,9 +10,11 @@ from django.utils.http import urlencode
 # -----------------------------------------------------------------------------
 
 
-def formfield_with_cache(db_field, formfield, request):
+def formfield_with_cache(
+    db_field: ForeignKey | ManyToManyField, formfield: ModelChoiceField, request: HttpRequest
+) -> ModelChoiceField:
     if formfield:
-        # condition to avoid errors for M2M fields absent from the form
+        # to avoid errors for M2M fields absent from the form
         choices = getattr(request, f'_{db_field.name}_choices_cache', None)
         if choices is None:
             choices = list(formfield.choices)
@@ -20,7 +24,7 @@ def formfield_with_cache(db_field, formfield, request):
 
 
 
-class CachedFormfieldsM2MMixin:
+class CachedM2MFormfieldMixin:
     """
     A mixin to ensure cache usage by formfields of ManyToMany fields.
     In order to use cache for all M2M fields, simply apply mixin to admin class.
@@ -28,20 +32,19 @@ class CachedFormfieldsM2MMixin:
     cached_m2m_formfields list, ex. cached_m2m_formfields = ['myfields', 'others'].
     Can be used in ModelAdmin and inlines.
     """
-    cached_m2m_formfields = '__all__'
+    cached_m2m_formfields = ['__all__']
 
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
+    def formfield_for_manytomany(
+        self, db_field: ManyToManyField, request: HttpRequest, **kwargs
+    ) -> ModelChoiceField:
         formfield = super().formfield_for_manytomany(db_field, request, **kwargs)
-        if self.cached_m2m_formfields == '__all__':
+        if any(s in self.cached_m2m_formfields for s in ['__all__', db_field.name]):
             formfield = formfield_with_cache(db_field, formfield, request)
-        else:
-            if db_field.name in self.cached_m2m_formfields:
-                formfield = formfield_with_cache(db_field, formfield, request)
         return formfield
 
 
 
-class CachedFormfieldsFKMixin:
+class CachedFKFormfieldMixin:
     """
     A mixin to ensure cache usage by formfields of foreign key fields.
     In order to use cache for all FK fields, simply apply mixin to admin class.
@@ -49,24 +52,24 @@ class CachedFormfieldsFKMixin:
     cached_fk_formfields list, ex. cached_fk_formfields = ['myfield', 'other'].
     Can be used in ModelAdmin and inlines.
     """
-    cached_fk_formfields = '__all__'
+    cached_fk_formfields = ['__all__']
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    def formfield_for_foreignkey(
+        self, db_field: ForeignKey, request: HttpRequest, **kwargs
+    ) -> ModelChoiceField:
         formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
-        if self.cached_fk_formfields == '__all__':
+        if any(s in self.cached_fk_formfields for s in ['__all__', db_field.name]):
             formfield = formfield_with_cache(db_field, formfield, request)
-        else:
-            if db_field.name in self.cached_fk_formfields:
-                formfield = formfield_with_cache(db_field, formfield, request)
         return formfield
 
 
-class CachedFormfieldsAllMixin(CachedFormfieldsFKMixin, CachedFormfieldsM2MMixin):
+
+class CachedFormfieldsAllMixin(CachedFKFormfieldMixin, CachedM2MFormfieldMixin):
     """
     A utility class for joining the effects of its parent classes.
     Can be used in ModelAdmin and inlines.
     """
-    pass
+
 
 
 class CustomModelAdmin(CachedFormfieldsAllMixin, ModelAdmin):
@@ -75,13 +78,12 @@ class CustomModelAdmin(CachedFormfieldsAllMixin, ModelAdmin):
     ModelAdmin FK and M2M formfields queries and other utilities,
     like filter_horizontal.
     """
-    pass
 
 
 # -----------------------------------------------------------------------------
 
 
-def get_count_color(value):
+def get_count_color(value: int) -> str:
     colors = {
         range(0, 1): "#00ffff",
         range(2, 3): "#00ff00",
@@ -93,6 +95,7 @@ def get_count_color(value):
     for k, v in colors.items():
         if value in k:
             return v
+
 
 
 class VersionedAdminMixin:
@@ -122,7 +125,9 @@ class VersionedAdminMixin:
 
 
 class ColorPickerMixin:
-    """A mixin for making TextInput fields named 'color' into color pickers."""
+    """
+    A mixin for making TextInput fields named 'color' into color pickers.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -131,4 +136,10 @@ class ColorPickerMixin:
 
 
 class TagAdminForm(ColorPickerMixin, ModelForm):
-    pass
+    """
+    A utility class for including color choice widget
+    for fields named 'color.
+    """
+
+
+# -----------------------------------------------------------------------------

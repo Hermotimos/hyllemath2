@@ -1,21 +1,14 @@
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.contenttypes.admin import GenericTabularInline
-from django.db.models import TextField, CharField, ForeignKey, Max
+from django.db.models import TextField, CharField, ForeignKey
 from django.forms import ModelForm, Select, Textarea, TextInput
-from django.utils.html import format_html
-from django.utils.http import urlencode
-from django.urls import reverse
 
-from characters.admin_filters import (
-    FirstNameGroupOfFirstNameFilter, ParentgroupOfFirstNameGroupFilter,
-)
 from locations.models import  (
     LocationNameTag, LocationName, LocationType, Location, LocationVersion,
 )
 from myproject.utils_admin import (
-    CustomModelAdmin, CachedFormfieldsFKMixin, CachedFormfieldsAllMixin,
-    get_count_color, TagAdminForm, VersionedAdminMixin,
+    CustomModelAdmin, CachedFKFormfieldMixin, CachedFormfieldsAllMixin,
+    TagAdminForm, VersionedAdminMixin,
 )
 
 

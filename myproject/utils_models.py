@@ -1,7 +1,8 @@
 
-from django.db.models import Model, CharField
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models import CharField, Model
+
 from users.models import User
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Tag(Model):
@@ -12,7 +13,7 @@ class Tag(Model):
         abstract = True
         ordering = ['title']
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.title
 
 

@@ -34,11 +34,17 @@ class CharacterVersionListView(ListView):
 @method_decorator(auth_character(['all']), name='dispatch')
 class CharacterVersionDetailView(DetailView):
     model = CharacterVersion
-    pk_url_kwarg = 'characterversion_id'
+
+    def get_object(self, queryset=None):
+        # INFO: tak trzeba brać dane dla 'context' w DetailView
+        # bo wołanie get_object() w get_context_data() to +1 query
+        obj = super().get_object(queryset)
+        self.page_title = obj.fullname
+        return obj
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['page_title'] = self.get_object().fullname
+        context['page_title'] = self.page_title
         return context
 
 

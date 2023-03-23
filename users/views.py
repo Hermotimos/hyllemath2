@@ -27,9 +27,7 @@ class CustomLoginView(LoginView):
         user = form.get_user()
         login(self.request, user)
 
-        # provide 'character_id' to session
-        user_current_character = user.characters.order_by('-_createdat').first()
-        self.request.session['character_id'] = user_current_character.id
+        self.request.session['character_id'] = user.characters.order_by('-_createdat').first().id
         return HttpResponseRedirect(self.get_success_url())
 
     # def get(self, request, *args, **kwargs):

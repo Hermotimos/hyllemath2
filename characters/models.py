@@ -3,11 +3,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
     CASCADE, PROTECT, SET_NULL, SET_DEFAULT, TextChoices, Model, Manager, F,
-    CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField,
+    CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField, Q,
     IntegerField, PositiveSmallIntegerField, TextField, BooleanField,
-    ManyToManyField as M2M, Index
+    ManyToManyField as M2M, Index, UniqueConstraint,
 )
 from django.db.models.functions import Collate
+from django.urls import reverse
 from django.utils.html import format_html
 
 from myproject.utils_models import Tag, get_gamemaster, min_max
@@ -184,6 +185,12 @@ class Character(Model):
             return str(self._mainversionname)
         return f"{self.user.username} - {self.id}"
 
+    def main_characterversion(self) -> 'CharacterVersion':
+        try:
+            return self.characterversions.get(versionkind='2. MAIN')
+        except CharacterVersion.DoesNotExist:
+            return self.characterversions.order_by('-versionkind').first()
+
 
 class CharacterKnownCharacterVersion(Character):
     """A proxy class for a separate AdminModel."""
@@ -302,9 +309,16 @@ class CharacterVersion(Model):
 
     class Meta:
         ordering = [Collate('fullname', 'pl-PL-x-icu'), "versionkind"]
-        unique_together = [
-            ['character', 'picture', 'versionkind', 'fullname'],
+        constraints = [
+            UniqueConstraint(
+                fields=['character', 'picture', 'versionkind', 'fullname'],
+                name='unique_characterversion_character_picture_versionkind_fullname'),
+            UniqueConstraint(
+                fields=['character'],
+                condition=Q(versionkind="2. MAIN"),
+                name='unique_characterversion_main')
         ]
+
 
     def __str__(self):
         return f"{self.fullname} ({self.versionkind[3:]})"
@@ -329,8 +343,8 @@ class CharacterVersion(Model):
         super().save(*args, **kwargs)
 
     # TODO
-    # def get_absolute_url(self):
-    #     return settings.BASE_URL + reverse('prosoponomikon:character', kwargs={'character_id' : self.id})
+    def get_absolute_url(self):
+        return  reverse('characters:characterversion-detail', kwargs={'pk' : self.id})
 
 
 #  ------------------------------------------------------------
