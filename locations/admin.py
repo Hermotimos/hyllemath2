@@ -7,8 +7,8 @@ from locations.models import  (
     LocationNameTag, LocationName, LocationType, Location, LocationVersion,
 )
 from myproject.utils_admin import (
-    CustomModelAdmin, CachedFKFormfieldMixin, CachedFormfieldsAllMixin,
-    TagAdminForm, VersionedAdminMixin,
+    CustomModelAdmin, CachedFormfieldsAllMixin,
+    TagAdminForm, related_objects_change_list_link,
 )
 
 
@@ -82,7 +82,7 @@ class LocationVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
 
 
 @admin.register(Location)
-class LocationAdmin(CustomModelAdmin, VersionedAdminMixin):
+class LocationAdmin(CustomModelAdmin):
     fieldsets = [
         (None, {
             'fields': (
@@ -95,7 +95,8 @@ class LocationAdmin(CustomModelAdmin, VersionedAdminMixin):
     ]
     inlines = [LocationVersionInline]
     list_display = [
-        '_mainversionname', '_versions', 'locationtype', 'inlocation',
+        '_mainversionname', 'locationversions_link',
+        'locationtype', 'inlocation',
         '_createdat',
     ]
     list_editable = ['locationtype', 'inlocation', ]
@@ -105,6 +106,10 @@ class LocationAdmin(CustomModelAdmin, VersionedAdminMixin):
         qs = super().get_queryset(request)
         qs = qs.prefetch_related('locationversions')
         return qs
+
+    @admin.display(description="Location Versions")
+    def locationversions_link(self, obj):
+        return related_objects_change_list_link(obj, obj.locationversions)
 
 
 #  ------------------------------------------------------------

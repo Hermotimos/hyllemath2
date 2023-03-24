@@ -1,11 +1,11 @@
 from django.contrib.admin import ModelAdmin
 from django.db.models import ForeignKey, ManyToManyField
+from django.db.models.fields.related_descriptors import ManyToManyDescriptor
 from django.forms import ModelChoiceField, ModelForm, TextInput
 from django.http import HttpRequest
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.http import urlencode
-
 
 # -----------------------------------------------------------------------------
 
@@ -97,28 +97,26 @@ def get_count_color(value: int) -> str:
             return v
 
 
-
-class VersionedAdminMixin:
+def related_objects_change_list_link(obj, rel_manager: ManyToManyDescriptor):
     """
-    A mixin providing a generic method for an admin list_display field that
-    creates a link to object's versions list.
+    Create link to admin change_list of filtered M2M related model.
+
+    Provides content for @admin.display custom field, which is a link to
+    an admin change_list filtered to contain M2M related objects.
     """
+    model_name = obj.__class__.__name__.lower()
+    rel_model_app, rel_model = str(rel_manager.model._meta).split('.')
 
-    def _versions(self, obj):
-        app_name = self.model.__module__.split('.')[0]
-        model_name = self.model.__name__.lower()
-        version_model_name = (model_name + 'version').lower()
-
-        if count := getattr(obj, f"{version_model_name}s", None).count():
-            url = (
-                reverse(f"admin:{app_name}_{version_model_name}_changelist")
-                + "?"
-                + urlencode({f"{model_name}__id": f"{obj.id}"})
-            )
-            color = get_count_color(count)
-            html = '<a href="{}" style="border: 1px solid; padding: 2px 3px; color: {};" target="_blank">{}</a>'
-            return format_html(html, url, color, count)
-        return "-"
+    if count := rel_manager.count():
+        url = (
+            reverse(f"admin:{rel_model_app}_{rel_model}_changelist")
+            + "?"
+            + urlencode({f"{model_name}__id": f"{obj.id}"})
+        )
+        color = get_count_color(count)
+        html = '<a href="{}" style="border: 1px solid; padding: 2px 3px; color: {};" target="_blank">{}</a>'
+        return format_html(html, url, color, count)
+    return "-"
 
 
 # -----------------------------------------------------------------------------

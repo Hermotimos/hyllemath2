@@ -17,7 +17,7 @@ from characters.models import  (
 )
 from myproject.utils_admin import (
     CustomModelAdmin, CachedFKFormfieldMixin, CachedFormfieldsAllMixin,
-    TagAdminForm, VersionedAdminMixin,
+    TagAdminForm, related_objects_change_list_link,
 )
 
 
@@ -192,7 +192,7 @@ class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
 
 
 @admin.register(Character)
-class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
+class CharacterAdmin(CustomModelAdmin):
     fieldsets = [
         (None, {
             'fields': (
@@ -206,7 +206,7 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
     ]
     inlines = [CharacterVersionInline]
     list_display = [
-        '_mainversionname', '_versions', 'user',
+        '_mainversionname', 'characterversions_link', 'user',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
         '_createdat',
     ]
@@ -219,6 +219,10 @@ class CharacterAdmin(CustomModelAdmin, VersionedAdminMixin):
         qs = super().get_queryset(request)
         qs = qs.prefetch_related('characterversions')
         return qs
+
+    @admin.display(description="Character Versions")
+    def characterversions_link(self, obj):
+        return related_objects_change_list_link(obj, obj.characterversions)
 
 
 #  ------------------------------------------------------------
