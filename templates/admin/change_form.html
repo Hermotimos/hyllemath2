@@ -1,11 +1,10 @@
 <!--
     A template  for adding custom CSS to all admin change_list pages.
 -->
-{% extends "admin/change_list.html" %}
+{% extends "admin/change_form.html" %}
 {% load static %}
 
 
 {% block extrahead %}
-    <link rel="stylesheet" href="{% static 'css/admin_change_list.css' %}">
     <link rel="stylesheet" href="{% static 'css/admin_change_list_and_detail.css' %}">
 {% endblock %}

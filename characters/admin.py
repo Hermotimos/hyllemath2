@@ -167,19 +167,28 @@ class FamilyNameAdmin(CustomModelAdmin):
 
 class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
     fields = [
-        'fullname', 'versionkind', 'isalive', 'isalterego',
+        'get_img', '__str__', 'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
-        'description', '_comment', '_createdat'
+        'description', 'picture', '_comment', '_createdat'
     ]
     formfield_overrides = {
-        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 45})},
-        CharField: {'widget': TextInput(attrs={'size': 15})},
+        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 30})},
+        CharField: {'widget': TextInput(attrs={'size': 10})},
         ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
     }
     model = CharacterVersion
     extra = 1
     fk_name = 'character'
-    readonly_fields = ['fullname', '_createdat']
+    readonly_fields = ['get_img', '__str__', '_createdat']
+
+    @admin.display(description="Image")
+    def get_img(self, obj):
+        img = '<img src="{}" width="70" height="70">'
+        comment = '<br><span style="color: red; font-weight: normal; font-style: italic;">{}</span>'
+        html = img + comment if obj._comment else img
+        if obj.picture:
+            return format_html(html, obj.picture.image.url, obj._comment)
+        return format_html(html, "media/profile_pics/profile_default.jpg", obj._comment)
 
 
 @admin.register(Character)

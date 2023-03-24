@@ -9,19 +9,18 @@ from myproject.utils_admin import (
     TagAdminForm, VersionedAdminMixin, get_count_color,
 )
 
+
+
 @admin.register(Picture)
 class PictureAdmin(CustomModelAdmin):
     list_display = [
-        'title', 'get_related_characterversions', 'get_related_locations',
+        'title',
+        'get_related_characterversions', 'get_related_locationversions',
         'category', 'image',
     ]
     list_editable = ['image']
     list_filter = ['category']
     search_fields = ['title', 'image']
-
-    # def get_queryset(self, request):
-    #     qs = super().get_queryset(request)
-    #     return qs.prefetch_related('characterversions')
 
     @admin.display(description="Character Versions")
     def get_related_characterversions(self, obj):
@@ -37,7 +36,7 @@ class PictureAdmin(CustomModelAdmin):
         return "-"
 
     @admin.display(description="Locations")
-    def get_related_locations(self, obj):
+    def get_related_locationversions(self, obj):
         if count := obj.locationversions.count():
             url = (
                 reverse("admin:locations_locationversion_changelist")
