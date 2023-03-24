@@ -286,7 +286,7 @@ class CharacterVersion(Model):
     fullname = CharField(max_length=200)    # redundant, handier than property
     description = TextField(max_length=10000, blank=True, null=True)
 
-    frequentedlocationversions = M2M(       # versions because 'ruined'-version has different 'inhabitants'
+    frequentedlocationversions = M2M(       # versions may have different 'inhabitants'
         "locations.LocationVersion", related_name='characters', blank=True)
     # biopackets = M2M(to=BiographyPacket, related_name='characters', blank=True)
     # dialoguepackets = M2M(to=DialoguePacket, related_name='characters', blank=True)

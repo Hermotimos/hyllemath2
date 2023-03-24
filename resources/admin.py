@@ -3,18 +3,25 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.http import urlencode
 
-from myproject.utils_admin import get_count_color
 from resources.models import Picture
-
+from myproject.utils_admin import (
+    CustomModelAdmin, CachedFKFormfieldMixin, CachedFormfieldsAllMixin,
+    TagAdminForm, VersionedAdminMixin, get_count_color,
+)
 
 @admin.register(Picture)
-class PictureAdmin(admin.ModelAdmin):
-    list_display = ['id', 'title', 'image', 'get_related_characterversions']
-    list_editable = ['title', 'image']
+class PictureAdmin(CustomModelAdmin):
+    list_display = [
+        'title', 'get_related_characterversions', 'get_related_locations',
+        'category', 'image',
+    ]
+    list_editable = ['image']
+    list_filter = ['category']
+    search_fields = ['title', 'image']
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.prefetch_related('characterversions')
+    # def get_queryset(self, request):
+    #     qs = super().get_queryset(request)
+    #     return qs.prefetch_related('characterversions')
 
     @admin.display(description="Character Versions")
     def get_related_characterversions(self, obj):
@@ -31,9 +38,9 @@ class PictureAdmin(admin.ModelAdmin):
 
     @admin.display(description="Locations")
     def get_related_locations(self, obj):
-        if count := obj.characterversions.count():
+        if count := obj.locationversions.count():
             url = (
-                reverse("admin:characters_characterversion_changelist")
+                reverse("admin:locations_locationversion_changelist")
                 + "?"
                 + urlencode({"picture__id": f"{obj.id}"})
             )

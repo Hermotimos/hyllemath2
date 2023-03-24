@@ -1,6 +1,6 @@
 from django.db.models import (
     Model, CharField, ImageField, TextChoices, ForeignKey as FK,
-    PROTECT,
+    PROTECT, Manager,
 )
 from resources.utils import image_upload_path
 
@@ -8,7 +8,15 @@ from resources.utils import image_upload_path
 #  ------------------------------------------------------------
 
 
+class PictureManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.prefetch_related('characterversions', 'locationversions')
+        return qs
+
+
 class Picture(Model):
+    objects = PictureManager()
 
     class Category(TextChoices):
         CHARACTER = "character", "character"
