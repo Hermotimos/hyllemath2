@@ -1,18 +1,11 @@
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db.models import (
-    CASCADE, PROTECT, SET_NULL, SET_DEFAULT, TextChoices, Model, Manager, F,
-    CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField,
-    IntegerField, PositiveSmallIntegerField, TextField, BooleanField,
-    ManyToManyField as M2M, Index, URLField,
+    CASCADE, PROTECT, TextChoices, Model, CharField, ForeignKey as FK,
+    IntegerField, TextField, ManyToManyField as M2M, URLField,
 )
 from django.db.models.functions import Collate
-from django.utils.html import format_html
 
-from myproject.utils_models import Tag, get_gamemaster, min_max
-from resources.models import Picture
-from users.models import User
+from resources.models import PictureVersion
 
 
 #  ------------------------------------------------------------
@@ -43,25 +36,24 @@ class InfoPacket(Model):
         BIOGRAPHY = "2. BIOGRAPHY", "BIOGRAPHY"
         DIALOGUE = "3. DIALOGUE", "DIALOGUE"
 
-    title = CharField(max_length=100)
-    text = TextField() # TODO from ckeditor.fields import RichTextField
     infopacketkind = CharField(
         max_length=15, choices=InfoPacketKind.choices,
         default=InfoPacketKind.KNOWLEDGE)
+    title = CharField(max_length=100)
+    text = TextField() # TODO from ckeditor.fields import RichTextField
+    references = M2M(to=Reference, related_name='infopackets', blank=True)
+
     author = FK(
         'characters.Character', related_name='infopacketsauthored', on_delete=PROTECT,
         null=True, blank=True)
     informees = M2M('characters.Character', related_name='infopackets', blank=True)
-    references = M2M(to=Reference, related_name='infopackets', blank=True)
 
     # skills = M2M(to=Skill, related_name='infopackets')
     ininfopackets = M2M(
         'self', related_name='infopackets', blank=True,
         through='InfoPacketPosition')
-    # TODO PicturePosition wzorem InfoPacketPosition jeśli zadziała
-    # picture_sets = M2M(
-    #     Picture, related_name='infopackets', blank=True,
-    #     through='Position')
+    pictureversions = GenericRelation(PictureVersion)
+
 
     class Meta:
         ordering = [Collate('title', 'pl-PL-x-icu'), 'infopacketkind']
@@ -82,5 +74,24 @@ class InfoPacketPosition(Model):
         return f"{self.containing_infopacket} -> {self.contained_infopacket}"
 
 
-#  ------------------------------------------------------------
+"""
+Działanie:
+Docelowo 1-3 poziomy InfoPacket, zależnie od pakietu:
+    1. pakiet-kubełek: pakiet na inne pakiety, np. Wierzenia Tirsenów
+        - może mieć absolutne minimum tekstu np. "Spis bóstw i mitów Tirsenów"
 
+        2. pakiet-duzy: taki, który zawiera trochę informacji
+            - odpowiada InfoPacket z Hyllemath 1.0
+            - składa się z 2 lub więcej pakietów-małych
+
+            3. pakiet-mały: najmniejsza cząstka informacyjna
+                - odpowiada akapitom lub podrozdziałom InfoPacket z Hyllemath 1.0
+                - stylizowany jako podrozdziały z tytułem (trzeba nadać zawsze)
+
+Przy tym robić tak, że niezależnie czy są 1, 2 czy 3 poziomy, pierwszy jaki
+wystąpi w hierarchii poziomów jest stylizowany zawsze tak samo, drugi też zawsze
+jako drugi, i trzeci ma swój styl, jeśli jest.
+W HTML mogłoby to odpowiadać koncepcyjnie I - <h1>, II - <h2>, III - <h3>
+przy czym czasem to pakiet-mały będzie I - <h1>.
+Oczywiście dać im inny style niż <h1> itp.
+"""
