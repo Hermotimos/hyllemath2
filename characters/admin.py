@@ -206,15 +206,15 @@ class CharacterAdmin(CustomModelAdmin):
     ]
     inlines = [CharacterVersionInline]
     list_display = [
-        '_mainversionname', 'characterversions_link', '_createdby', 'user',
+        '_highestversionname', 'characterversions_link', '_createdby', 'user',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
         '_createdat',
     ]
     list_editable = [
         'user', 'strength', 'dexterity', 'endurance', 'power', 'experience',
     ]
-    readonly_fields = ['_mainversionname', '_createdat', '_createdby']
-    search_fields = ['_mainversionname']
+    readonly_fields = ['_highestversionname', '_createdat', '_createdby']
+    search_fields = ['_highestversionname']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -224,6 +224,10 @@ class CharacterAdmin(CustomModelAdmin):
     @admin.display(description="Character Versions")
     def characterversions_link(self, obj):
         return related_objects_change_list_link(obj, obj.characterversions)
+
+    @admin.display(description="Highest Version Name")
+    def _highestversionname(self, obj):
+        return obj.characterversions.first().fullname
 
 
 #  ------------------------------------------------------------
