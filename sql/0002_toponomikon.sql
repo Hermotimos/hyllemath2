@@ -5,8 +5,8 @@ Data migrations for:
 */
 
 
-CREATE EXTENSION dblink;
-SELECT dblink_connect('hyllemath','host=localhost port=5432 dbname=hyllemath user=xxxxx password=yyyyy');
+-- CREATE EXTENSION dblink;
+SELECT dblink_connect('hyllemath','host=localhost port=5432 dbname=hyllemath user=postgres password=postgres');
 
 
 

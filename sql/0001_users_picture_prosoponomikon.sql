@@ -13,8 +13,8 @@ Data migrations for:
 */
 
 
-CREATE EXTENSION dblink;
-SELECT dblink_connect('hyllemath','host=localhost port=5432 dbname=hyllemath user=xxxxx password=yyyyy');
+-- CREATE EXTENSION dblink;
+SELECT dblink_connect('hyllemath','host=localhost port=5432 dbname=hyllemath user=postgres password=postgres');
 
 
 
@@ -320,8 +320,10 @@ imported AS (
 )
 ,
 ins_characters AS (
-  INSERT INTO characters_character (id, user_id, strength, dexterity, endurance, power, experience, _createdat)
-  SELECT profileid, userid, strength, dexterity, endurance, 1, experience, current_timestamp                     -- characters have ids from profiles
+  INSERT INTO characters_character (
+  	id, user_id, strength, dexterity, endurance, power, experience, _createdat, _createdby_id
+  )
+  SELECT profileid, userid, strength, dexterity, endurance, 1, experience, current_timestamp, createdbyid 	   -- characters have ids from profiles
   FROM imported
   RETURNING *
 ),
@@ -335,12 +337,12 @@ ins_pictures AS (
 INSERT INTO characters_characterversion (
   id, character_id, versionkind, isalive, isalterego, firstname_id, familyname_id,
   nickname, originname, fullname,
-  description, _createdby_id, _createdat, picture_id
+  description, _createdat, picture_id
 )
 SELECT characterid, profileid, '2. MAIN', is_alive, FALSE, first_name_id, family_name_id,
   CASE WHEN cognomen LIKE 'z %' OR cognomen LIKE 'ze %' THEN NULL ELSE cognomen END,
   CASE WHEN cognomen LIKE 'z %' OR cognomen LIKE 'ze %' THEN cognomen ELSE NULL END, fullname,
-  description, createdbyid, current_timestamp , pic.id
+  description, current_timestamp , pic.id
 FROM imported
 LEFT JOIN ins_pictures pic ON pic.image = imported.image;      -- LEFT dla postaci bez obrazka: utworzone przez graczy lub niedokończone
 
