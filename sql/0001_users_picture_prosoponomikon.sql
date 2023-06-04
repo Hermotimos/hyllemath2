@@ -5,6 +5,7 @@ Data migrations for:
   * 'prosoponomikon' app
       PENDING:
         * prosoponomikon_acquisition
+        * prosoponomikon_spellacquisition
         * prosoponomikon_character_biography_packets
         * prosoponomikon_character_dialogue_packets
         * prosoponomikon_character_frequented_locations
