@@ -1,12 +1,13 @@
 from django.contrib.contenttypes.fields import GenericRelation
+from django.db.models.functions import Collate
 from django.db.models import (
     CASCADE, PROTECT, TextChoices, Model, CharField, ForeignKey as FK,
-    IntegerField, TextField, ManyToManyField as M2M, URLField,
+    IntegerField, TextField, ManyToManyField as M2M, URLField, DateTimeField,
+    Manager, SET_NULL, Q, CheckConstraint, Count, UniqueConstraint,
 )
-from django.db.models.functions import Collate
+from django.utils.safestring import mark_safe
 
 from resources.models import PictureVersion
-
 
 #  ------------------------------------------------------------
 
@@ -25,73 +26,117 @@ class Reference(Model):
 
 #  ------------------------------------------------------------
 
-# TODO wszystkie pakiety łącznie, żeby można było je łączyć w meta-pakiety,
-#  niezaleznie od kind; również pakiety z info mogą iść do dialogów czyichś.
-# TODO MapPacket -> InfoPacket, bo po co to rozróżniać
 
-class InfoPacket(Model):
+class InfoItem(Model):
+    class EnigmaLevel(TextChoices):
+        _0 = "0", "0"
+        _1 = "1", "1"
+        _2 = "2", "2"
+        _3 = "3", "3"
 
-    class InfoPacketKind(TextChoices):
-        KNOWLEDGE = "1. KNOWLEDGE", "KNOWLEDGE"
-        BIOGRAPHY = "2. BIOGRAPHY", "BIOGRAPHY"
-        DIALOGUE = "3. DIALOGUE", "DIALOGUE"
-
-    infopacketkind = CharField(
-        max_length=15, choices=InfoPacketKind.choices,
-        default=InfoPacketKind.KNOWLEDGE)
+    enigmalevel = CharField(max_length=1, choices=EnigmaLevel.choices)
     title = CharField(max_length=100)
-    text = TextField() # TODO from ckeditor.fields import RichTextField
-    references = M2M(to=Reference, related_name='infopackets', blank=True)
-
-    author = FK(
-        'characters.Character', related_name='infopacketsauthored', on_delete=PROTECT,
-        null=True, blank=True)
-    informees = M2M('characters.Character', related_name='infopackets', blank=True)
-
-    # skills = M2M(to=Skill, related_name='infopackets')
-    ininfopackets = M2M(
-        'self', related_name='infopackets', blank=True,
-        through='InfoPacketPosition')
-    pictureversions = GenericRelation(PictureVersion)
-
+    _createdat = DateTimeField(auto_now_add=True)
+    _createdby = FK(
+        'characters.Character', related_name='infoitemscreated',
+        on_delete=PROTECT, blank=True, null=True)
 
     class Meta:
-        ordering = [Collate('title', 'pl-PL-x-icu'), 'infopacketkind']
-
-
-class InfoPacketPosition(Model):
-    containing_infopacket = FK(
-        InfoPacket, related_name='contained_infopackets', on_delete=CASCADE)
-    contained_infopacket = FK(
-        InfoPacket, related_name='containing_infopackets', on_delete=CASCADE)
-    orderdum = IntegerField()
-
-    class Meta:
-        ordering = [Collate('containing_infopacket__title', 'pl-PL-x-icu')]
-        unique_together = ['containing_infopacket', 'contained_infopacket']
+        ordering = ['enigmalevel', 'title']
 
     def __str__(self):
-        return f"{self.containing_infopacket} -> {self.contained_infopacket}"
+        enigmalevel = self.enigmalevel.replace("_", "")
+        return f"[{enigmalevel}] {self.title}"
 
 
-"""
-Działanie:
-Docelowo 1-3 poziomy InfoPacket, zależnie od pakietu:
-    1. pakiet-kubełek: pakiet na inne pakiety, np. Wierzenia Tirsenów
-        - może mieć absolutne minimum tekstu np. "Spis bóstw i mitów Tirsenów"
+#  ------------------------------------------------------------
 
-        2. pakiet-duzy: taki, który zawiera trochę informacji
-            - odpowiada InfoPacket z Hyllemath 1.0
-            - składa się z 2 lub więcej pakietów-małych
+class InfoItemVersionManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related(
+            'infoitem',
+        )
+        return qs
 
-            3. pakiet-mały: najmniejsza cząstka informacyjna
-                - odpowiada akapitom lub podrozdziałom InfoPacket z Hyllemath 1.0
-                - stylizowany jako podrozdziały z tytułem (trzeba nadać zawsze)
 
-Przy tym robić tak, że niezależnie czy są 1, 2 czy 3 poziomy, pierwszy jaki
-wystąpi w hierarchii poziomów jest stylizowany zawsze tak samo, drugi też zawsze
-jako drugi, i trzeci ma swój styl, jeśli jest.
-W HTML mogłoby to odpowiadać koncepcyjnie I - <h1>, II - <h2>, III - <h3>
-przy czym czasem to pakiet-mały będzie I - <h1>.
-Oczywiście dać im inny style niż <h1> itp.
-"""
+class InfoItemVersion(Model):
+    objects = InfoItemVersionManager()
+
+    class InfoItemVersionKind(TextChoices):
+        MAIN = "1. MAIN", "MAIN"
+        PARTIAL = "2. PARTIAL", "PARTIAL"
+        PAST = "3. PAST", "PAST"
+        BYPLAYER = "4. BYPLAYER", "BYPLAYER"
+
+    infoitem = FK(InfoItem, related_name='infoitemversions', on_delete=PROTECT)
+    versionkind = CharField(
+        max_length=15, choices=InfoItemVersionKind.choices,
+        default=InfoItemVersionKind.MAIN)
+
+    text = TextField() # TODO from ckeditor.fields import RichTextField
+    pictureversions = GenericRelation(PictureVersion)
+    knowledges = GenericRelation('characters.Knowledge')
+    _createdat = DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["infoitem", "versionkind"]
+        constraints = [
+            UniqueConstraint(
+                fields=['infoitem', 'text', 'versionkind'],
+                name='unique_infoitemversion_infoitem_versionkind'),
+            UniqueConstraint(
+                fields=['infoitem'],
+                condition=Q(versionkind="1. MAIN"),
+                name='unique_infoitemversion_main')
+        ]
+
+    def __str__(self):
+        return f"{self.infoitem.title} {self.versionkind[3:]}"
+
+
+#  ------------------------------------------------------------
+
+
+class InfoPacketKind(Model):
+    name = CharField(max_length=50) # ex. LOC-GEOGRAPHY, LOC-BIOLOGY, LOC-ECONOMICS, CHA-BIOGRAPHY, CHA-SECRETS
+    locationordering = IntegerField(blank=True, null=True)
+    characterordering = IntegerField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["locationordering", "characterordering", "name"]
+
+    def __str__(self):
+        return self.name
+
+
+class InfoPacket(Model):
+    infopacketkinds = M2M(InfoPacketKind, related_name='infopackets')
+    title = CharField(max_length=100)
+    infoitems = M2M(
+        InfoItem, related_name='infopackets',
+        help_text=mark_safe(
+            '<span style="color:red;font-size:1.2rem;">'
+            '❖ InfoItems of the same Enigma Level!</span><br>'))
+    references = M2M(Reference, related_name='infopackets', blank=True)
+
+    class Meta:
+        ordering = [Collate('title', 'pl-PL-x-icu')]
+
+    def __str__(self):
+        return self.title
+
+
+#  ------------------------------------------------------------
+
+
+class InfoPacketSet(Model):
+    title = CharField(max_length=100)
+    infopackets = M2M(InfoPacket, related_name='infopacketsets')
+    # skills = M2M(to=Skill, related_name='infopacketsets')
+
+    class Meta:
+        ordering = [Collate('title', 'pl-PL-x-icu')]
+
+    def __str__(self):
+        return self.title
