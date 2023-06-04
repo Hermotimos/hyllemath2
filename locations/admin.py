@@ -88,18 +88,18 @@ class LocationAdmin(CustomModelAdmin):
                 '_mainversionname',
                 'locationtype',
                 'inlocation',
-                '_createdat',
+                ('_createdat', '_createdby')
             )
         }),
     ]
     inlines = [LocationVersionInline]
     list_display = [
-        '_mainversionname', 'locationversions_link',
+        '_mainversionname', 'locationversions_link', '_createdby',
         'locationtype', 'inlocation',
         '_createdat',
     ]
     list_editable = ['locationtype', 'inlocation', ]
-    readonly_fields = ['_mainversionname', '_createdat']
+    readonly_fields = ['_mainversionname', '_createdat', '_createdby']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -124,7 +124,7 @@ class LocationVersionAdmin(CustomModelAdmin):
                 ('propername', 'descriptivename'),
                 'population',
                 ('description', '_comment'),
-                ('_createdat', '_createdby'),
+                '_createdat',
             )
         }),
     ]
@@ -136,13 +136,13 @@ class LocationVersionAdmin(CustomModelAdmin):
     list_display = [
         'name',
         'versionkind', 'location', 'propername', 'descriptivename', 'population',
-        'picture', 'description', '_comment', '_createdby', '_createdat',
+        'picture', 'description', '_comment', '_createdat',
     ]
     list_editable = [
         'versionkind', 'location', 'picture', 'propername', 'descriptivename',
         'population', 'description', '_comment',
     ]
-    readonly_fields = ['_createdby', '_createdat']
+    readonly_fields = ['_createdat']
 
     def get_formsets_with_inlines(self, request, obj=None):
         # hide all inlines in the add view, see get_formsets_with_inlines:

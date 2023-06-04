@@ -119,6 +119,9 @@ class Location(Model):
         blank=True, null=True)
     _mainversionname = CharField(max_length=150, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
+    _createdby = FK(
+        'characters.Character', related_name='createdlocations',
+        on_delete=PROTECT, blank=True, null=True)
 
     class Meta:
         ordering = ['_mainversionname']
@@ -177,9 +180,6 @@ class LocationVersion(Model):
     # infopackets = M2M(to=InfoPacket, related_name='locationversions', blank=True)
     knowledges = GenericRelation('characters.Knowledge')
 
-    _createdby = FK(
-        'characters.Character', related_name='createdlocationversions',
-        on_delete=SET_NULL, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)   # TODO players see DISTINCT ON (location) ORDER BY _createdat DESC
     _comment = TextField(max_length=1000, blank=True, null=True)
 

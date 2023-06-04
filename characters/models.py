@@ -161,7 +161,7 @@ class FamilyName(Model):
 class CharacterManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        qs = qs.select_related('user')
+        qs = qs.select_related('user', '_createdby')
         return qs
 
 
@@ -176,6 +176,9 @@ class Character(Model):
     experience = PositiveSmallIntegerField(blank=True, null=True)
     _mainversionname = CharField(max_length=150, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
+    _createdby = FK(
+        'self', related_name='characterversionscreated',
+        on_delete=PROTECT, blank=True, null=True)
 
     class Meta:
         ordering = ["user__is_superuser", "_mainversionname"]
@@ -247,7 +250,7 @@ class CharacterVersionManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
         qs = qs.select_related(
-            'picture', 'firstname', 'familyname', '_createdby',
+            'picture', 'firstname', 'familyname',
         )
         return qs
 
@@ -301,9 +304,9 @@ class CharacterVersion(Model):
     tags = M2M(CharacterVersionTag, related_name='characterversions', blank=True)
     knowledges = GenericRelation(Knowledge)
 
-    _createdby = FK(
-        Character, related_name='characterversionscreated', on_delete=SET_NULL,
-        blank=True, null=True)
+    # _createdby = FK(
+    #     Character, related_name='characterversionscreated',
+    #     on_delete=PROTECT, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
     _comment = TextField(max_length=1000, blank=True, null=True)
 
@@ -319,7 +322,6 @@ class CharacterVersion(Model):
                 condition=Q(versionkind="2. MAIN"),
                 name='unique_characterversion_main')
         ]
-
 
     def __str__(self):
         return f"{self.fullname} ({self.versionkind[3:]})"

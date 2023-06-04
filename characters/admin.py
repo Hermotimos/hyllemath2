@@ -200,20 +200,20 @@ class CharacterAdmin(CustomModelAdmin):
                 'user',
                 ('strength', 'dexterity', 'endurance', 'power',),
                 'experience',
-                '_createdat',
+                ('_createdat', '_createdby'),
             )
         }),
     ]
     inlines = [CharacterVersionInline]
     list_display = [
-        '_mainversionname', 'characterversions_link', 'user',
+        '_mainversionname', 'characterversions_link', '_createdby', 'user',
         'strength', 'dexterity', 'endurance', 'power', 'experience',
         '_createdat',
     ]
     list_editable = [
         'user', 'strength', 'dexterity', 'endurance', 'power', 'experience',
     ]
-    readonly_fields = ['_mainversionname', '_createdat']
+    readonly_fields = ['_mainversionname', '_createdat', '_createdby']
     search_fields = ['_mainversionname']
 
     def get_queryset(self, request):
@@ -296,7 +296,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
                 'description',
                 'frequentedlocationversions',
                 'tags',
-                ('_createdat', '_createdby'),
+                '_createdat',
             )
         }),
     ]
@@ -311,7 +311,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
         'get_img', 'fullname', 'versionkind', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
         'description',
-        '_createdby', '_comment', '_createdat',
+        '_comment', '_createdat',
     ]
     list_editable = [
         'versionkind', 'isalive', 'isalterego',
@@ -319,10 +319,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
         'description', '_comment'
     ]
     list_per_page = 50
-    radio_fields =  {"versionkind": admin.VERTICAL}
-    readonly_fields = [
-        'fullname', '_createdat', '_createdby',
-    ]
+    readonly_fields = ['fullname', '_createdat',]
     search_fields = ['fullname']
 
     class Media:
