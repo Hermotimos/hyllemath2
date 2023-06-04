@@ -4,12 +4,11 @@ from django.db.models import (
     CASCADE, PROTECT, SET_NULL, SET_DEFAULT, TextChoices, Model, Manager, F,
     CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField,
     IntegerField, PositiveSmallIntegerField, TextField, BooleanField,
-    ManyToManyField as M2M,
+    ManyToManyField as M2M, UniqueConstraint, Q,
 )
 from django.db.models.functions import Collate
 from django.utils.html import format_html
 
-from characters.models import Knowledge, Character
 from myproject.utils_models import Tag
 from resources.models import Picture
 
@@ -165,7 +164,7 @@ class LocationVersion(Model):
     propername = FK(
         LocationName, related_name='locationversions', on_delete=PROTECT,
         blank=True, null=True)
-    descriptivename = CharField(max_length=100, blank=True, null=True)
+    descriptivename = CharField(max_length=100, blank=True, null=True) # In case no propername
     name = CharField(max_length=100)    # redundantne, wygodniejsze od property
     description = TextField(blank=True, null=True)      # TODO: czy tu paketyzacja?
     population = PositiveIntegerField(blank=True, null=True)
@@ -176,17 +175,25 @@ class LocationVersion(Model):
     # picturesets = M2M(to=PictureSet, related_name='locationversions', blank=True)
     # audiosets = M2M(AudioSet, related_name='locationversions', blank=True)
     # infopackets = M2M(to=InfoPacket, related_name='locationversions', blank=True)
-
-    knowledges = GenericRelation(Knowledge)
+    knowledges = GenericRelation('characters.Knowledge')
 
     _createdby = FK(
-        Character, related_name='createdlocationversions', on_delete=SET_NULL,
-        blank=True, null=True)
+        'characters.Character', related_name='createdlocationversions',
+        on_delete=SET_NULL, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)   # TODO players see DISTINCT ON (location) ORDER BY _createdat DESC
     _comment = TextField(max_length=1000, blank=True, null=True)
 
     class Meta:
         ordering = ['location', '-_createdat']
+        constraints = [
+            UniqueConstraint(
+                fields=['location', 'versionkind', 'picture', 'propername', 'descriptivename'],
+                name='unique_locationversion_location_versionkind_picture_propername_descriptivename'),
+            UniqueConstraint(
+                fields=['location'],
+                condition=Q(versionkind="1. MAIN"),
+                name='unique_locationversion_main')
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.versionkind[3:]})"
