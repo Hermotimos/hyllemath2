@@ -312,8 +312,8 @@ class CharacterVersion(Model):
         ordering = [Collate('fullname', 'pl-PL-x-icu'), "versionkind"]
         constraints = [
             UniqueConstraint(
-                fields=['character', 'picture', 'versionkind', 'fullname'],
-                name='unique_characterversion_character_picture_versionkind_fullname'),
+                fields=['character', 'versionkind', 'picture', 'fullname'],
+                name='unique_characterversion_character_versionkind_picture_fullname'),
             UniqueConstraint(
                 fields=['character'],
                 condition=Q(versionkind="2. MAIN"),

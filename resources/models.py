@@ -1,4 +1,4 @@
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import (
     Model, CharField, ImageField, TextChoices, ForeignKey as FK,
@@ -45,8 +45,9 @@ class Picture(Model):
 
 
 class PictureVersion(Model):
-    picture = FK(Picture, related_name="pictureversions", on_delete=PROTECT)
+    picture = FK(Picture, related_name='pictureversions', on_delete=PROTECT)
     title = CharField(max_length=100, unique=True)
+    knowledges = GenericRelation('characters.Knowledge')
 
     # TODO this class is for GameEvent (or Event in general), maybe InfoPacket
 
