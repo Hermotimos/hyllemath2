@@ -69,7 +69,7 @@ class FirstNameGroupAdmin(CustomModelAdmin):
 
     class Media:
         css = {
-            'all': (f'{settings.STATIC_URL}css/admin_change_form_namegroup.css',)
+            'all': (f'{settings.STATIC_URL}css/admin_change_form__namegroup.css',)
         }
 
 
@@ -82,7 +82,7 @@ class FirstNameAdmin(CustomModelAdmin):
                 ('nominative', 'genitive', 'origin'),
                 ('meaning', 'description'),
                 'equivalents',
-                'tags'
+                'tags',
                 '_comment'
             ),
         }),
@@ -127,7 +127,7 @@ class FamilyNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
 
     class Media:
         css = {
-            'all': (f'{settings.STATIC_URL}css/admin_change_form_namegroup.css',)
+            'all': (f'{settings.STATIC_URL}css/admin_change_form__namegroup.css',)
         }
 
 
@@ -214,6 +214,7 @@ class CharacterAdmin(CustomModelAdmin):
         'user', 'strength', 'dexterity', 'endurance', 'power', 'experience',
     ]
     readonly_fields = ['_mainversionname', '_createdat']
+    search_fields = ['_mainversionname']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -326,7 +327,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
 
     class Media:
         css = {
-            'all': (f'{settings.STATIC_URL}css/admin_change_form_characterversion.css',)
+            'all': (f'{settings.STATIC_URL}css/admin_change_form__characterversion.css',)
         }
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):

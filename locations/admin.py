@@ -1,7 +1,6 @@
-from django.conf import settings
 from django.contrib import admin
 from django.db.models import TextField, CharField, ForeignKey
-from django.forms import ModelForm, Select, Textarea, TextInput
+from django.forms import Select, Textarea, TextInput
 
 from locations.models import  (
     LocationNameTag, LocationName, LocationType, Location, LocationVersion,

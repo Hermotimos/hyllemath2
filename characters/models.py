@@ -227,7 +227,8 @@ class Knowledge(Model):
     character = FK(Character, related_name='knowledges', on_delete=PROTECT)
     isdirect = BooleanField(default=False)
     identifiedwith = ArrayField(PositiveIntegerField(), blank=True, null=True)
-    # TODO identifiedwith is for overriding DISTINCT ON (character_id, isalterego) in player's view
+    # TODO identifiedwith is for overriding DISTINCT ON (character_id, isalterego) in player's view,
+    # TODO [opisać dokładniej do czego to służy; jak to się ma do Location]
 
     class Meta:
         indexes = [

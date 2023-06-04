@@ -6,6 +6,11 @@
 
 
 {% block extrahead %}
+    {{ block.super }}
+    {{ media.js }}
+    <script src="{% static 'admin/js/filters.js' %}" defer></script>
+
+    <!-- ADD THIS -->
     <link rel="stylesheet" href="{% static 'css/admin_change_list.css' %}">
-    <link rel="stylesheet" href="{% static 'css/admin_change_list_and_detail.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin_change_list_and_detail__characterversion.css' %}">
 {% endblock %}

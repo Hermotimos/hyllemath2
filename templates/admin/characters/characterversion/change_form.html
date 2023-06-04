@@ -1,0 +1,14 @@
+<!--
+    A template  for adding custom CSS to all admin change_list pages.
+-->
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static "admin/css/forms.css" %}">
+
+    <!-- ADD THIS  -->
+    <link rel="stylesheet" href="{% static 'css/admin_change_list_and_detail__characterversion.css' %}">
+{% endblock %}
