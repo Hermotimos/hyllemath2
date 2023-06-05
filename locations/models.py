@@ -159,6 +159,7 @@ class LocationVersion(Model):
     versionkind = CharField(
         max_length=15, choices=LocationVersionKind.choices,
         default=LocationVersionKind.MAIN)
+    versioncomment = TextField(max_length=1000, blank=True, null=True)    # Field for the reason the version exists
 
     # versioned stuff
     picture = FK(
@@ -181,7 +182,6 @@ class LocationVersion(Model):
     knowledges = GenericRelation('characters.Knowledge')
 
     _createdat = DateTimeField(auto_now_add=True)   # TODO players see DISTINCT ON (location) ORDER BY _createdat DESC
-    _comment = TextField(max_length=1000, blank=True, null=True)
 
     class Meta:
         ordering = ['location', '-_createdat']

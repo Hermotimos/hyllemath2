@@ -68,8 +68,9 @@ class LocationTypeAdmin(CustomModelAdmin):
 
 class LocationVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
     fields = [
-        'versionkind', 'location', 'propername', 'descriptivename',
-        'population', 'picture', 'description', '_comment',
+        'versionkind', 'versioncomment', 'location',
+        'propername', 'descriptivename',
+        'description', 'population', 'picture',
     ]
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 50})},
@@ -100,6 +101,7 @@ class LocationAdmin(CustomModelAdmin):
     ]
     list_editable = ['locationtype', 'inlocation', ]
     readonly_fields = ['_mainversionname', '_createdat', '_createdby']
+    search_fields = ['_mainversionname']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -119,12 +121,10 @@ class LocationVersionAdmin(CustomModelAdmin):
     fieldsets = [
         (None, {
             'fields': (
-                'name',
-                ('versionkind', 'location', 'picture'),
-                ('propername', 'descriptivename'),
-                'population',
-                ('description', '_comment'),
-                '_createdat',
+                ('name', 'propername', 'descriptivename'),
+                'location',
+                ('versionkind', 'versioncomment'),
+                'description', 'population', 'picture', '_createdat',
             )
         }),
     ]
@@ -135,14 +135,16 @@ class LocationVersionAdmin(CustomModelAdmin):
     }
     list_display = [
         'name',
-        'versionkind', 'location', 'propername', 'descriptivename', 'population',
-        'picture', 'description', '_comment', '_createdat',
+        'location', 'versionkind', 'versioncomment',
+        'propername', 'descriptivename', 'description', 'population',
+        'picture', '_createdat',
     ]
     list_editable = [
-        'versionkind', 'location', 'picture', 'propername', 'descriptivename',
-        'population', 'description', '_comment',
+        'location', 'versionkind', 'versioncomment',
+        'propername', 'descriptivename', 'description', 'population',
+        'picture',
     ]
-    readonly_fields = ['_createdat']
+    readonly_fields = ['name', '_createdat']
 
     def get_formsets_with_inlines(self, request, obj=None):
         # hide all inlines in the add view, see get_formsets_with_inlines:

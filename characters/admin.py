@@ -13,7 +13,7 @@ from characters.models import  (
     CharacterVersion, CharacterVersionTag,
     FamilyName, FamilyNameGroup, FamilyNameTag,
     FirstName, FirstNameGroup, FirstNameTag,
-    Knowledge,
+    Knowledge, DialoguePacket,
 )
 from myproject.utils_admin import (
     CustomModelAdmin, CachedFKFormfieldMixin, CachedFormfieldsAllMixin,
@@ -110,7 +110,6 @@ class FirstNameAdmin(CustomModelAdmin):
 #  ------------------------------------------------------------
 
 
-
 class FamilyNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
     filter_horizontal = ['tags']
     model = FamilyName
@@ -167,9 +166,10 @@ class FamilyNameAdmin(CustomModelAdmin):
 
 class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
     fields = [
-        'get_img', '__str__', 'versionkind', 'isalive', 'isalterego',
+        'get_img', '__str__', 'versionkind', 'versioncomment',
+        'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
-        'description', 'picture', '_comment', '_createdat'
+        'description', 'picture', '_createdat',
     ]
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 30})},
@@ -185,10 +185,10 @@ class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
     def get_img(self, obj):
         img = '<img src="{}" width="70" height="70">'
         comment = '<br><span style="color: red; font-weight: normal; font-style: italic;">{}</span>'
-        html = img + comment if obj._comment else img
+        html = img + comment if obj.versioncomment else img
         if obj.picture:
-            return format_html(html, obj.picture.image.url, obj._comment)
-        return format_html(html, "media/profile_pics/profile_default.jpg", obj._comment)
+            return format_html(html, obj.picture.image.url, obj.versioncomment)
+        return format_html(html, "media/profile_pics/profile_default.jpg", obj.versioncomment)
 
 
 @admin.register(Character)
@@ -200,10 +200,12 @@ class CharacterAdmin(CustomModelAdmin):
                 'user',
                 ('strength', 'dexterity', 'endurance', 'power',),
                 'experience',
+                'dialoguepackets',
                 ('_createdat', '_createdby'),
             )
         }),
     ]
+    filter_horizontal= ['dialoguepackets']
     inlines = [CharacterVersionInline]
     list_display = [
         '_highestversionname', 'characterversions_link', '_createdby', 'user',
@@ -296,7 +298,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
                 'fullname',
                 ('character', 'picture'),
                 ('firstname', 'familyname', 'nickname', 'originname',),
-                ('_comment', 'versionkind', 'isalive', 'isalterego'),
+                ('versionkind', 'versioncomment', 'isalive', 'isalterego'),
                 'description',
                 'frequentedlocationversions',
                 'tags',
@@ -312,15 +314,16 @@ class CharacterVersionAdmin(CustomModelAdmin):
     }
     inlines = [KnowledgePassiveInline]
     list_display = [
-        'get_img', 'fullname', 'versionkind', 'isalive', 'isalterego',
+        'get_img', 'fullname', 'versionkind', 'versioncomment',
+        'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
         'description',
-        '_comment', '_createdat',
+        '_createdat',
     ]
     list_editable = [
-        'versionkind', 'isalive', 'isalterego',
+        'versionkind', 'versioncomment', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
-        'description', '_comment'
+        'description',
     ]
     list_per_page = 50
     readonly_fields = ['fullname', '_createdat',]
@@ -348,7 +351,21 @@ class CharacterVersionAdmin(CustomModelAdmin):
     def get_img(self, obj):
         img = '<img src="{}" width="70" height="70">'
         comment = '<br><span style="color: red; font-weight: normal; font-style: italic;">{}</span>'
-        html = img + comment if obj._comment else img
+        html = img + comment if obj.versioncomment else img
         if obj.picture:
-            return format_html(html, obj.picture.image.url, obj._comment)
-        return format_html(html, "media/profile_pics/profile_default.jpg", obj._comment)
+            return format_html(html, obj.picture.image.url, obj.versioncomment)
+        return format_html(html, "media/profile_pics/profile_default.jpg", obj.versioncomment)
+
+
+#  ------------------------------------------------------------
+
+
+@admin.register(DialoguePacket)
+class DialoguePacketAdmin(CustomModelAdmin):
+    filter_horizontal = ['characters']
+    list_display = ['id', 'title', 'text']
+    list_editable = ['title', 'text']
+    search_fields = ['title', 'text']
+
+
+#  ------------------------------------------------------------

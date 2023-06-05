@@ -51,6 +51,7 @@ class InfoItem(Model):
 
 #  ------------------------------------------------------------
 
+
 class InfoItemVersionManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()

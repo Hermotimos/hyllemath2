@@ -174,6 +174,17 @@ class Character(Model):
     endurance = IntegerField(default=9, validators=min_max(1,20), blank=True, null=True)
     power = IntegerField(default=1, validators=min_max(1,20), blank=True, null=True)
     experience = PositiveSmallIntegerField(blank=True, null=True)
+
+    dialoguepackets = M2M(
+        'DialoguePacket',
+        through='DialoguePacket_characters', blank=True)
+    # biopackets = M2M(to=BiographyPacket, related_name='characters', blank=True)
+    # subprofessions = M2M(to=SubProfession, related_name='characters', blank=True)
+    # skilllevels = M2M(
+    #     to=SkillLevel,
+    #     through='Acquisition',
+    #     related_name='acquiring_characters',
+    #     blank=True)
     _mainversionname = CharField(max_length=150, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
     _createdby = FK(
@@ -272,13 +283,11 @@ class CharacterVersion(Model):
     versionkind = CharField(
         max_length=15, choices=CharacterVersionKind.choices,
         default=CharacterVersionKind.MAIN)
+    versioncomment = TextField(max_length=1000, blank=True, null=True)
     isalterego = BooleanField(default=False)
 
     # versioned stuff
-    isalive = BooleanField(default=True)
-    picture = FK(
-        Picture, related_name='characterversions', on_delete=PROTECT,
-        blank=True, null=True)  # for player-created ones
+    fullname = CharField(max_length=200)    # redundant, handier than property
     firstname = FK(
         FirstName, related_name='characterversions', on_delete=PROTECT,
         blank=True, null=True)
@@ -287,29 +296,18 @@ class CharacterVersion(Model):
         blank=True, null=True)
     nickname = CharField(max_length=50, blank=True, null=True)
     originname = CharField(max_length=50, blank=True, null=True)
-    fullname = CharField(max_length=200)    # redundant, handier than property
     description = TextField(max_length=10000, blank=True, null=True)
-
+    isalive = BooleanField(default=True)
+    picture = FK(
+        Picture, related_name='characterversions', on_delete=PROTECT,
+        blank=True, null=True)  # for player-created ones
     frequentedlocationversions = M2M(       # versions may have different 'inhabitants'
         "locations.LocationVersion", related_name='characters', blank=True)
-    # biopackets = M2M(to=BiographyPacket, related_name='characters', blank=True)
-    # dialoguepackets = M2M(to=DialoguePacket, related_name='characters', blank=True)
-    # subprofessions = M2M(to=SubProfession, related_name='characters', blank=True)
-    # skilllevels = M2M(
-    #     to=SkillLevel,
-    #     through='Acquisition',
-    #     related_name='acquiring_characters',
-    #     blank=True)
 
     tags = M2M(CharacterVersionTag, related_name='characterversions', blank=True)
     knowledges = GenericRelation(Knowledge)
 
-    # _createdby = FK(
-    #     Character, related_name='characterversionscreated',
-    #     on_delete=PROTECT, blank=True, null=True)
     _createdat = DateTimeField(auto_now_add=True)
-    _comment = TextField(max_length=1000, blank=True, null=True)
-
 
     class Meta:
         ordering = [Collate('fullname', 'pl-PL-x-icu'), "versionkind"]
@@ -368,3 +366,14 @@ class CharacterVersion(Model):
 
 #  ------------------------------------------------------------
 
+
+class DialoguePacket(Model):
+    characters = M2M(Character)
+    title = CharField(max_length=100)
+    text = TextField()  # TODO from ckeditor.fields import RichTextField
+
+    class Meta:
+        ordering = ["title"]
+
+    def __str__(self):
+        return self.title
