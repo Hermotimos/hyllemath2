@@ -514,6 +514,46 @@ WHERE c.id = cv.character_id AND cv.versionkind = '2. MAIN';
 
 
 
+
+
+-- ==================================================================================
+-- DIALOGUE PACKET
+
+
+-- DialoguePacket(InfoPacket) ==> DialoguePacket
+
+INSERT INTO characters_dialoguepacket (id, title, text)
+SELECT * FROM dblink(
+  'hyllemath',
+  $$
+    SELECT id, title, text
+    FROM knowledge_dialoguepacket
+  $$)
+AS imported(id int, title text, text TEXT);
+
+SELECT setval('characters_dialoguepacket_id_seq', 1 + (SELECT MAX(id) FROM characters_dialoguepacket));
+
+
+
+-- DialoguePacket + Character ==> DialoguePacket + Character
+
+INSERT INTO characters_dialoguepacket_characters (id, dialoguepacket_id, character_id)
+SELECT * FROM dblink(
+  'hyllemath',
+  $$
+    SELECT dp.id, dp.dialoguepacket_id, c.profile_id
+    FROM prosoponomikon_character_dialogue_packets dp
+    JOIN prosoponomikon_character c ON c.id = dp.character_id
+  $$)
+AS imported(id int, dialoguepacket_id int, profile_id int);
+
+SELECT setval('characters_dialoguepacket_characters_id_seq', 1 + (SELECT MAX(id) FROM characters_dialoguepacket_characters));
+
+
+
+
+
+
 -- ----------------------------------------------------------------------------
 -- Ściągawka Hyllemath 1.0 ==> Hyllemath 2.0
 /*
