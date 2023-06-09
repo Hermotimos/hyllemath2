@@ -216,7 +216,7 @@ class CharacterAdmin(CustomModelAdmin):
         'user', 'strength', 'dexterity', 'endurance', 'power', 'experience',
     ]
     readonly_fields = ['_highestversionname', '_createdat', '_createdby']
-    search_fields = ['_highestversionname']
+    search_fields = ['characterversions__fullname']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -362,6 +362,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
 
 @admin.register(DialoguePacket)
 class DialoguePacketAdmin(CustomModelAdmin):
+    fields = ['title', 'text', 'characters']
     filter_horizontal = ['characters']
     list_display = ['id', 'title', 'text']
     list_editable = ['title', 'text']
