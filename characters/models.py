@@ -9,7 +9,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Collate
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from myproject.utils_models import Tag, get_gamemaster, min_max
 from resources.models import Picture
@@ -65,9 +65,8 @@ class FirstNameGroup(Model):
 
     def __str__(self):
         parentgroup = f" [{self.parentgroup.title}]" if self.parentgroup else ""
-        return  format_html(
+        return mark_safe(
             f'<strong style="color: #7fff00;">{self.title}</strong> {parentgroup}')
-
 
 
 class FirstNameManager(Manager):
@@ -75,7 +74,6 @@ class FirstNameManager(Manager):
         qs = super().get_queryset()
         qs = qs.select_related('firstnamegroup__parentgroup')
         return qs
-
 
 
 class FirstName(Model):
@@ -211,6 +209,7 @@ class CharacterKnownCharacterVersion(Character):
 
     class Meta:
         proxy = True
+        verbose_name = 'Character - known Character Version'
 
 
 class CharacterKnownLocationVersion(Character):
@@ -218,6 +217,7 @@ class CharacterKnownLocationVersion(Character):
 
     class Meta:
         proxy = True
+        verbose_name = 'Character - known Location Version'
 
 
 class CharacterKnownInfoItemVersion(Character):
@@ -225,6 +225,7 @@ class CharacterKnownInfoItemVersion(Character):
 
     class Meta:
         proxy = True
+        verbose_name = 'Character - known Info Item Version'
 
 
 #  ------------------------------------------------------------
@@ -258,7 +259,9 @@ class Knowledge(Model):
         ordering = ['content_type']
 
     def __str__(self):
-        return f"{self.character} -> {self.content_object}"
+        return mark_safe(
+            f'{self.character} -> <span style="color: #00ff00;">{self.content_object}</span>'
+        )
 
 
 #  ------------------------------------------------------------
@@ -286,7 +289,7 @@ class CharacterVersion(Model):
 
     character = FK(
         Character, related_name='characterversions', on_delete=PROTECT,
-        blank=True, null=True)  # for player-created ones
+        blank=True, null=True)  # blank/null for player-created ones
     versionkind = CharField(
         max_length=15, choices=CharacterVersionKind.choices,
         default=CharacterVersionKind.MAIN)
@@ -307,7 +310,7 @@ class CharacterVersion(Model):
     isalive = BooleanField(default=True)
     picture = FK(
         Picture, related_name='characterversions', on_delete=PROTECT,
-        blank=True, null=True)  # for player-created ones
+        blank=True, null=True)  # blank/null for player-created ones
     frequentedlocationversions = M2M(       # versions may have different 'inhabitants'
         "locations.LocationVersion", related_name='characters', blank=True)
 

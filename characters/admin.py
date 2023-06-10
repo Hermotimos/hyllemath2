@@ -1,12 +1,17 @@
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.contenttypes.admin import GenericTabularInline
 from django.db.models import TextField, CharField, ForeignKey, Min
 from django.forms import Select, Textarea, TextInput
 from django.utils.html import format_html
 
 from characters.admin_filters import (
     FirstNameGroupOfFirstNameFilter, ParentgroupOfFirstNameGroupFilter,
+)
+from characters.admin_inlines import (
+    FirstNameInline, FamilyNameInline, CharacterVersionInline,
+    CharacterVersionKnowledgeInline, LocationVersionKnowledgeInline,
+    InfoItemVersionKnowledgeInline,
+    KnowledgePassiveInline,
 )
 from characters.models import  (
     Character,
@@ -15,11 +20,10 @@ from characters.models import  (
     CharacterVersion, CharacterVersionTag,
     FamilyName, FamilyNameGroup, FamilyNameTag,
     FirstName, FirstNameGroup, FirstNameTag,
-    Knowledge, DialoguePacket,
+    DialoguePacket,
 )
 from myproject.utils_admin import (
-    CustomModelAdmin, CachedFKFormfieldMixin, CachedFormfieldsAllMixin,
-    TagAdminForm, related_objects_change_list_link,
+    CustomModelAdmin, TagAdminForm, related_objects_change_list_link,
 )
 
 
@@ -47,35 +51,12 @@ class TagAdmin(CustomModelAdmin):
 #  ------------------------------------------------------------
 
 
-class FirstNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
-    filter_horizontal = ['tags', 'equivalents']
-    model = FirstName
-    extra = 5
-    fields = [
-        'nominative', 'genitive', 'gender', 'isarchaic', 'origin',
-        'meaning', 'description', 'equivalents', 'tags', '_comment',
-    ]
-    formfield_overrides = {
-        TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 14})},
-        CharField: {'widget': TextInput(attrs={'size': 12})},
-        ForeignKey: {'widget': Select(attrs={'style': 'width:120px'})},
-    }
-
-
 @admin.register(FirstNameGroup)
 class FirstNameGroupAdmin(CustomModelAdmin):
     inlines = [FirstNameInline]
     list_display = ['id', 'title', 'parentgroup', 'description']
     list_editable = ['title', 'parentgroup', 'description']
     list_filter = [ParentgroupOfFirstNameGroupFilter]
-
-    class Media:
-        css = {
-            'all': (
-                f'{settings.STATIC_URL}css/admin_change_form__M2M_small.css',
-                f'{settings.STATIC_URL}css/admin_change_form__namegroup.css',
-            )
-        }
 
 
 @admin.register(FirstName)
@@ -115,29 +96,6 @@ class FirstNameAdmin(CustomModelAdmin):
 #  ------------------------------------------------------------
 
 
-class FamilyNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
-    filter_horizontal = ['tags']
-    model = FamilyName
-    extra = 5
-    fields = [
-        'nominative', 'nominative_pl', 'genitive', 'genitive_pl', 'origin',
-        'description', 'tags', '_comment',
-    ]
-    formfield_overrides = {
-        TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 14})},
-        CharField: {'widget': TextInput(attrs={'size': 12})},
-        ForeignKey: {'widget': Select(attrs={'style': 'width:120px'})},
-    }
-
-    class Media:
-        css = {
-            'all': (
-                f'{settings.STATIC_URL}css/admin_change_form__M2M_small.css',
-                f'{settings.STATIC_URL}css/admin_change_form__namegroup.css',
-            )
-        }
-
-
 @admin.register(FamilyNameGroup)
 class FamilyNameGroupAdmin(CustomModelAdmin):
     inlines = [FamilyNameInline]
@@ -170,32 +128,6 @@ class FamilyNameAdmin(CustomModelAdmin):
 
 
 #  ------------------------------------------------------------
-
-
-class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
-    fields = [
-        'get_img', 'versionkind', 'versioncomment', 'isalive', 'isalterego',
-        'firstname', 'familyname', 'nickname', 'originname',
-        'description', 'picture', '_createdat',
-    ]
-    formfield_overrides = {
-        TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 30})},
-        CharField: {'widget': TextInput(attrs={'size': 10})},
-        ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
-    }
-    model = CharacterVersion
-    extra = 1
-    fk_name = 'character'
-    readonly_fields = ['get_img', '_createdat']
-
-    @admin.display(description="Image")
-    def get_img(self, obj):
-        img = '<img src="{}" width="70" height="70">'
-        comment = '<br><span style="color: red; font-weight: normal; font-style: italic;">{}</span>'
-        html = img + comment if obj.versioncomment else img
-        if obj.picture:
-            return format_html(html, obj.picture.image.url, obj.versioncomment)
-        return format_html(html, "media/profile_pics/profile_default.jpg", obj.versioncomment)
 
 
 @admin.register(Character)
@@ -242,82 +174,28 @@ class CharacterAdmin(CustomModelAdmin):
 #  ------------------------------------------------------------
 
 
-# @admin.register(Knowledge)
-# class KnowledgeAdmin(CustomModelAdmin):
-#     pass
-#     # TODO robić to?
-
-
 class CharacterKnowledgeAdmin(CustomModelAdmin):
     fields = ['_mainversionname',]
     readonly_fields = ['_mainversionname']
-
-
-
-class ContentTypeKnowledgeInline(CachedFKFormfieldMixin, admin.TabularInline):
-    content_type_model = ''     # override in concrete implementations
-    model = Knowledge
-    verbose_name_plural = f"{content_type_model} Knowledges"
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        qs = qs.prefetch_related('content_object')
-        qs = qs.filter(content_type__model__iexact=self.content_type_model)
-        return qs
-
+    search_fields = ['_mainversionname']
 
 
 @admin.register(CharacterKnownCharacterVersion)
 class CharacterKnownCharacterVersionAdmin(CharacterKnowledgeAdmin):
-
-    class CharacterVersionKnowledgeInline(ContentTypeKnowledgeInline):
-        content_type_model = "CharacterVersion"
-
     inlines = [CharacterVersionKnowledgeInline]
-
 
 
 @admin.register(CharacterKnownLocationVersion)
 class CharacterKnownLocationVersionAdmin(CharacterKnowledgeAdmin):
-
-    class LocationVersionKnowledgeInline(ContentTypeKnowledgeInline):
-        content_type_model = "LocationVersion"
-
     inlines = [LocationVersionKnowledgeInline]
-
 
 
 @admin.register(CharacterKnownInfoItemVersion)
 class CharacterKnownInfoItemVersionAdmin(CharacterKnowledgeAdmin):
-
-    class InfoItemVersionKnowledgeInline(ContentTypeKnowledgeInline):
-        content_type_model = "InfoItemVersion"
-
-        def get_queryset(self, request):
-            """
-            Override method to achieve prefetch. This is necessary as long as
-            InfoItemVersion has no title and uses InfoItem.title for __str__.
-            """
-            qs = super().get_queryset(request)
-            qs = qs.prefetch_related('content_object__infoitem')
-            qs = qs.filter(content_type__model__iexact=self.content_type_model)
-            return qs
-
     inlines = [InfoItemVersionKnowledgeInline]
 
 
 #  ------------------------------------------------------------
-
-
-class KnowledgePassiveInline(CachedFKFormfieldMixin, GenericTabularInline):
-    model = Knowledge
-    # fk_name = 'character'
-    verbose_name_plural = "Knowledges (this character version is known by these characters)"
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        qs = qs.prefetch_related('content_object')
-        return qs
 
 
 @admin.register(CharacterVersion)
