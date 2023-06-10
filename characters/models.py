@@ -320,7 +320,7 @@ class CharacterVersion(Model):
     _createdat = DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = [Collate('fullname', 'pl-PL-x-icu'), "versionkind"]
+        ordering = ['versionkind', Collate('fullname', 'pl-PL-x-icu')]
         constraints = [
             UniqueConstraint(
                 fields=['character', 'versionkind', 'picture', 'fullname'],

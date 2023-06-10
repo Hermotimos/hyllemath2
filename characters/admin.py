@@ -234,6 +234,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
         'description',
     ]
     list_per_page = 50
+    ordering = ['character___mainversionname', 'versionkind']
     readonly_fields = ['fullname', '_createdat',]
     search_fields = ['fullname']
 
