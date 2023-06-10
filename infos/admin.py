@@ -20,9 +20,12 @@ class ReferenceAdmin(CustomModelAdmin):
 
 @admin.register(InfoItem)
 class InfoItemAdmin(CustomModelAdmin):
-    list_display = ['id', 'enigmalevel', 'title', '_createdby', '_createdat']
-    list_editable = ['enigmalevel']
-    list_filter = ['enigmalevel', '_createdby']
+    list_display = [
+        'id', 'enigmalevel', 'title', 'isrestricted',
+        '_createdby', '_createdat'
+    ]
+    list_editable = ['enigmalevel', 'title', 'isrestricted',]
+    list_filter = ['enigmalevel', 'isrestricted', '_createdby']
     search_fields = ['title']
 
 

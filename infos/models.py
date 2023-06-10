@@ -4,6 +4,7 @@ from django.db.models import (
     CASCADE, PROTECT, TextChoices, Model, CharField, ForeignKey as FK,
     IntegerField, TextField, ManyToManyField as M2M, URLField, DateTimeField,
     Manager, SET_NULL, Q, CheckConstraint, Count, UniqueConstraint,
+    BooleanField,
 )
 from django.utils.safestring import mark_safe
 
@@ -36,6 +37,9 @@ class InfoItem(Model):
 
     enigmalevel = CharField(max_length=1, choices=EnigmaLevel.choices)
     title = CharField(max_length=100)
+    # TODO isrestricted=True should prevent from adding non-GMs to knowledges
+    # in InfoItemVersion's of this InfoItem
+    isrestricted = BooleanField(default=True)
     _createdat = DateTimeField(auto_now_add=True)
     _createdby = FK(
         'characters.Character', related_name='infoitemscreated',
