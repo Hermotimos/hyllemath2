@@ -10,6 +10,7 @@ from django.utils.safestring import mark_safe
 
 from resources.models import PictureVersion
 
+
 #  ------------------------------------------------------------
 
 

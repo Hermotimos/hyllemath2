@@ -64,7 +64,7 @@ class PictureVersion(Model):
 class PictureVersionPositionManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        qs = qs.select_related('pictureversion__pciture')
+        qs = qs.select_related('pictureversion__picture')
         return qs
 
 
