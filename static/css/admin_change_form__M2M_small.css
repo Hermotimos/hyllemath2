@@ -1,0 +1,23 @@
+
+
+/* Resize M2M filter_horizontal */
+.selector {width: 420px;}
+
+.selector select {
+    min-height: 5em;
+    max-height: 5em;
+    width: 15em;
+}
+
+.selector-chosen select {
+    min-height: 8.1em;
+    max-height: 8.1em;
+    width: 15em;
+}
+
+
+.selector .selector-available input {
+    width: 10em;
+}
+/* END Resizing M2M filter_horizontal */
+

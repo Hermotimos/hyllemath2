@@ -9,7 +9,9 @@ from characters.admin_filters import (
     FirstNameGroupOfFirstNameFilter, ParentgroupOfFirstNameGroupFilter,
 )
 from characters.models import  (
-    Character, CharacterKnownCharacterVersion, CharacterKnownLocationVersion,
+    Character,
+    CharacterKnownCharacterVersion, CharacterKnownLocationVersion,
+    CharacterKnownInfoItemVersion,
     CharacterVersion, CharacterVersionTag,
     FamilyName, FamilyNameGroup, FamilyNameTag,
     FirstName, FirstNameGroup, FirstNameTag,
@@ -69,7 +71,10 @@ class FirstNameGroupAdmin(CustomModelAdmin):
 
     class Media:
         css = {
-            'all': (f'{settings.STATIC_URL}css/admin_change_form__namegroup.css',)
+            'all': (
+                f'{settings.STATIC_URL}css/admin_change_form__M2M_small.css',
+                f'{settings.STATIC_URL}css/admin_change_form__namegroup.css',
+            )
         }
 
 
@@ -126,7 +131,10 @@ class FamilyNameInline(CachedFormfieldsAllMixin, admin.TabularInline):
 
     class Media:
         css = {
-            'all': (f'{settings.STATIC_URL}css/admin_change_form__namegroup.css',)
+            'all': (
+                f'{settings.STATIC_URL}css/admin_change_form__M2M_small.css',
+                f'{settings.STATIC_URL}css/admin_change_form__namegroup.css',
+            )
         }
 
 
@@ -166,8 +174,7 @@ class FamilyNameAdmin(CustomModelAdmin):
 
 class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
     fields = [
-        'get_img', '__str__', 'versionkind', 'versioncomment',
-        'isalive', 'isalterego',
+        'get_img', 'versionkind', 'versioncomment', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
         'description', 'picture', '_createdat',
     ]
@@ -179,7 +186,7 @@ class CharacterVersionInline(CachedFormfieldsAllMixin, admin.TabularInline):
     model = CharacterVersion
     extra = 1
     fk_name = 'character'
-    readonly_fields = ['get_img', '__str__', '_createdat']
+    readonly_fields = ['get_img', '_createdat']
 
     @admin.display(description="Image")
     def get_img(self, obj):
@@ -246,6 +253,7 @@ class CharacterKnowledgeAdmin(CustomModelAdmin):
     readonly_fields = ['_mainversionname']
 
 
+
 class ContentTypeKnowledgeInline(CachedFKFormfieldMixin, admin.TabularInline):
     content_type_model = ''     # override in concrete implementations
     model = Knowledge
@@ -258,6 +266,7 @@ class ContentTypeKnowledgeInline(CachedFKFormfieldMixin, admin.TabularInline):
         return qs
 
 
+
 @admin.register(CharacterKnownCharacterVersion)
 class CharacterKnownCharacterVersionAdmin(CharacterKnowledgeAdmin):
 
@@ -267,6 +276,7 @@ class CharacterKnownCharacterVersionAdmin(CharacterKnowledgeAdmin):
     inlines = [CharacterVersionKnowledgeInline]
 
 
+
 @admin.register(CharacterKnownLocationVersion)
 class CharacterKnownLocationVersionAdmin(CharacterKnowledgeAdmin):
 
@@ -274,6 +284,26 @@ class CharacterKnownLocationVersionAdmin(CharacterKnowledgeAdmin):
         content_type_model = "LocationVersion"
 
     inlines = [LocationVersionKnowledgeInline]
+
+
+
+@admin.register(CharacterKnownInfoItemVersion)
+class CharacterKnownInfoItemVersionAdmin(CharacterKnowledgeAdmin):
+
+    class InfoItemVersionKnowledgeInline(ContentTypeKnowledgeInline):
+        content_type_model = "InfoItemVersion"
+
+        def get_queryset(self, request):
+            """
+            Override method to achieve prefetch. This is necessary as long as
+            InfoItemVersion has no title and uses InfoItem.title for __str__.
+            """
+            qs = super().get_queryset(request)
+            qs = qs.prefetch_related('content_object__infoitem')
+            qs = qs.filter(content_type__model__iexact=self.content_type_model)
+            return qs
+
+    inlines = [InfoItemVersionKnowledgeInline]
 
 
 #  ------------------------------------------------------------

@@ -220,6 +220,13 @@ class CharacterKnownLocationVersion(Character):
         proxy = True
 
 
+class CharacterKnownInfoItemVersion(Character):
+    """A proxy class for a separate AdminModel."""
+
+    class Meta:
+        proxy = True
+
+
 #  ------------------------------------------------------------
 
 

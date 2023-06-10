@@ -36,7 +36,8 @@ class InfoItem(Model):
         _2 = "2", "2"
         _3 = "3", "3"
 
-    enigmalevel = CharField(max_length=1, choices=EnigmaLevel.choices)
+    enigmalevel = CharField(
+        max_length=1, choices=EnigmaLevel.choices, default=EnigmaLevel._0)
     title = CharField(max_length=100)
     # TODO isrestricted=True should prevent from adding non-GMs to knowledges
     # in InfoItemVersion's of this InfoItem
@@ -79,8 +80,10 @@ class InfoItemVersion(Model):
     versionkind = CharField(
         max_length=15, choices=InfoItemVersionKind.choices,
         default=InfoItemVersionKind.MAIN)
+    versioncomment = TextField(max_length=1000, blank=True, null=True)
 
     text = TextField() # TODO from ckeditor.fields import RichTextField
+    references = M2M(Reference, related_name='infoitems', blank=True)
     pictureversions = GenericRelation(PictureVersion)
     knowledges = GenericRelation('characters.Knowledge')
     _createdat = DateTimeField(auto_now_add=True)
@@ -104,33 +107,46 @@ class InfoItemVersion(Model):
 #  ------------------------------------------------------------
 
 
-class InfoPacketKind(Model):
-    name = CharField(max_length=50) # ex. LOC-GEOGRAPHY, LOC-BIOLOGY, LOC-ECONOMICS, CHA-BIOGRAPHY, CHA-SECRETS
-    locationordering = IntegerField(blank=True, null=True)
-    characterordering = IntegerField(blank=True, null=True)
-
-    class Meta:
-        ordering = ["locationordering", "characterordering", "name"]
-
-    def __str__(self):
-        return self.name
-
-
 class InfoPacket(Model):
-    infopacketkinds = M2M(InfoPacketKind, related_name='infopackets')
+    INFO_PACKET_KINDS = [
+        # temp for data migration - TODO: change to specific
+        ("TEMP-0-GENERAL",   "TEMP-0-GENERAL"),
+        # characters
+        ("CHA-1-BIOGRAPHY",  "CHA-1-BIOGRAPHY"),
+        ("CHA-2-SECRETS",    "CHA-2-SECRETS"),
+        # locations
+        ("LOC-1-GEOGRAPHY",  "LOC-1-GEOGRAPHY"),
+        ("LOC-2-BIOLOGY",    "LOC-2-BIOLOGY"),
+        ("LOC-3-ECONOMICS",  "LOC-3-ECONOMICS"),
+    ]
+    infopacketkind = CharField(
+        max_length=100, choices=INFO_PACKET_KINDS, default="TEMP-0-GENERAL")
     title = CharField(max_length=100)
-    infoitems = M2M(
-        InfoItem, related_name='infopackets',
-        help_text=mark_safe(
-            '<span style="color:red;font-size:1.2rem;">'
-            '❖ InfoItems of the same Enigma Level!</span><br>'))
-    references = M2M(Reference, related_name='infopackets', blank=True)
+    infoitems = M2M(InfoItem, through='InfoItemPosition', related_name='infopackets')
 
     class Meta:
-        ordering = [Collate('title', 'pl-PL-x-icu')]
+        ordering = ['infopacketkind', Collate('title', 'pl-PL-x-icu')]
 
     def __str__(self):
-        return self.title
+        return f"{self.title} [{self.infopacketkind}]"
+
+
+#  ------------------------------------------------------------
+
+
+class InfoItemPosition(Model):
+    """A model for positioning InfoItem-s within InfoPacket's."""
+
+    infoitem = FK(InfoItem, related_name='positionsininfopackets', on_delete=CASCADE)
+    infopacket = FK(InfoPacket, related_name='infoitempositions', on_delete=CASCADE)
+    position = IntegerField(default=1)
+
+    class Meta:
+        ordering = ['infopacket', 'position']
+        unique_together = ['infopacket', 'infoitem']
+
+    def __str__(self):
+        return f"{self.infopacket} -> {self.infoitem}"
 
 
 #  ------------------------------------------------------------
