@@ -9,7 +9,7 @@ from infos.models import (
     Reference, InfoItemPosition,
 )
 from myproject.utils_admin import (
-    CustomModelAdmin, CachedFormfieldsAllMixin,
+    CustomModelAdmin, CachedFormfieldsAllMixin, CachedFKFormfieldMixin,
     related_objects_change_list_link,
 )
 
@@ -63,6 +63,8 @@ class InfoItemAdmin(CustomModelAdmin):
 
 
 #  ------------------------------------------------------------
+
+
 
 
 @admin.register(InfoItemVersion)

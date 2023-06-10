@@ -8,7 +8,7 @@ from django.db.models import (
 )
 from django.utils.safestring import mark_safe
 
-from resources.models import PictureVersion
+from resources.models import PicturePosition, Picture
 
 
 #  ------------------------------------------------------------
@@ -84,7 +84,7 @@ class InfoItemVersion(Model):
 
     text = TextField() # TODO from ckeditor.fields import RichTextField
     references = M2M(Reference, related_name='infoitems', blank=True)
-    pictureversions = GenericRelation(PictureVersion)
+    picturepositions = GenericRelation('resources.PicturePosition')
     knowledges = GenericRelation('characters.Knowledge')
     _createdat = DateTimeField(auto_now_add=True)
 
@@ -122,6 +122,9 @@ class InfoPacket(Model):
     infopacketkind = CharField(
         max_length=100, choices=INFO_PACKET_KINDS, default="TEMP-0-GENERAL")
     title = CharField(max_length=100)
+    # picture = FK(
+    #     Picture, related_name='infopackets', on_delete=PROTECT,
+    #     blank=True, null=True)  # TODO in future add a pic for each packet
     infoitems = M2M(InfoItem, through='InfoItemPosition', related_name='infopackets')
 
     class Meta:

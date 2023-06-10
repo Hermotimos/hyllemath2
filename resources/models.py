@@ -1,4 +1,4 @@
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import (
     Model, CharField, ImageField, TextChoices, ForeignKey as FK,
@@ -44,48 +44,30 @@ class Picture(Model):
 #  ------------------------------------------------------------
 
 
-class PictureVersion(Model):
-    picture = FK(Picture, related_name='pictureversions', on_delete=PROTECT)
-    title = CharField(max_length=100, unique=True)
-    knowledges = GenericRelation('characters.Knowledge')
-
-    # TODO this class is for GameEvent (or Event in general), maybe InfoPacket
-
-    class Meta:
-        ordering = ["title"]
-
-    def __str__(self) -> str:
-        return f"[{self.picture.title}]: {self.title}"
-
-
-#  ------------------------------------------------------------
-
-
-class PictureVersionPositionManager(Manager):
+class PicturePositionManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        qs = qs.select_related('pictureversion__picture')
+        qs = qs.select_related('picture__picture')
         return qs
 
 
-class PictureVersionPosition(Model):
-    objects = PictureVersionPositionManager()
+class PicturePosition(Model):
+    objects = PicturePositionManager()
 
     # technical fields of Generic relations
-    content_type = FK(ContentType, related_name='pictureversions', on_delete=CASCADE)
+    content_type = FK(ContentType, related_name='pictures', on_delete=CASCADE)
     object_id = PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
-    pictureversion = FK(
-        PictureVersion, related_name='pictureversionpositions', on_delete=PROTECT)
+    picture = FK(Picture, related_name='picturepositions', on_delete=PROTECT)
     position = IntegerField(default=1)
 
     class Meta:
         indexes = [
             Index(fields=["content_type", "object_id"]),
         ]
-        ordering = ['content_type', 'pictureversion', 'position']
+        ordering = ['content_type', 'picture', 'position']
 
     def __str__(self):
-        return f"{self.pictureversion} (w: {self.content_object})"
+        return f"{self.picture} (w: {self.content_object})"
 
