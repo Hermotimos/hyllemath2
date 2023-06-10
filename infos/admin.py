@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.contenttypes.admin import GenericTabularInline
 from django.db.models import TextField, CharField, ForeignKey, Min
 from django.forms import Select, Textarea, TextInput
 from django.utils.safestring import mark_safe
@@ -8,6 +9,7 @@ from infos.models import (
     InfoItem, InfoItemVersion, InfoPacket, InfoPacketSet,
     Reference, InfoItemPosition,
 )
+from resources.models import PicturePosition
 from myproject.utils_admin import (
     CustomModelAdmin, CachedFormfieldsAllMixin, CachedFKFormfieldMixin,
     related_objects_change_list_link,
@@ -65,6 +67,15 @@ class InfoItemAdmin(CustomModelAdmin):
 #  ------------------------------------------------------------
 
 
+class PicturePositionInline(CachedFKFormfieldMixin, GenericTabularInline):
+    model = PicturePosition
+    verbose_name_plural = "Picture Positions"
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.prefetch_related('content_object')
+        return qs
+
 
 
 @admin.register(InfoItemVersion)
@@ -73,7 +84,7 @@ class InfoItemVersionAdmin(CustomModelAdmin):
         (None, {
             'fields': (
                 ('infoitem', 'versionkind'),
-                'versioncomment', 'text', '_createdat',
+                'versioncomment', 'text', 'references', '_createdat',
             )
         }),
     ]
@@ -81,6 +92,7 @@ class InfoItemVersionAdmin(CustomModelAdmin):
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 50})},
     }
+    inlines = [PicturePositionInline]
     list_display = [
         'id', 'infoitem', 'versionkind', 'versioncomment', 'text',
         '_createdat',

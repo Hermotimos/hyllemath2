@@ -47,7 +47,7 @@ class Picture(Model):
 class PicturePositionManager(Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        qs = qs.select_related('picture__picture')
+        qs = qs.select_related('picture')
         return qs
 
 
@@ -66,7 +66,7 @@ class PicturePosition(Model):
         indexes = [
             Index(fields=["content_type", "object_id"]),
         ]
-        ordering = ['content_type', 'picture', 'position']
+        ordering = ['content_type', 'position', 'picture']
 
     def __str__(self):
         return f"{self.picture} (w: {self.content_object})"
