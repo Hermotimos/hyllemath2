@@ -7,8 +7,6 @@ Data migrations for:
         * prosoponomikon_acquisition
         * prosoponomikon_spellacquisition
         * prosoponomikon_character_biography_packets
-        * prosoponomikon_character_dialogue_packets
-        * prosoponomikon_character_frequented_locations
         * prosoponomikon_character_subprofessions
 */
 
