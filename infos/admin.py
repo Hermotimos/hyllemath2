@@ -4,7 +4,10 @@ from django.contrib.contenttypes.admin import GenericTabularInline
 from django.db.models import TextField, CharField, ForeignKey, Min
 from django.forms import Select, Textarea, TextInput
 from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 
+from characters.models import Knowledge
+from characters.admin_inlines import BasePassiveKnowledgeInline
 from infos.models import (
     InfoItem, InfoItemVersion, InfoPacket, InfoPacketSet,
     Reference, InfoItemPosition,
@@ -12,8 +15,9 @@ from infos.models import (
 from resources.models import PicturePosition
 from myproject.utils_admin import (
     CustomModelAdmin, CachedFormfieldsAllMixin, CachedFKFormfieldMixin,
-    related_objects_change_list_link,
+    related_objects_change_list_link, INLINE_HEADER,
 )
+
 
 
 @admin.register(Reference)
@@ -67,6 +71,11 @@ class InfoItemAdmin(CustomModelAdmin):
 #  ------------------------------------------------------------
 
 
+class InfoItemVersionPassiveKnowledgeInline(BasePassiveKnowledgeInline):
+    verbose_name_plural = format_html(
+        INLINE_HEADER, 'Knowledges', 'Characters knowing this InfoItemVersion')
+
+
 class PicturePositionInline(CachedFKFormfieldMixin, GenericTabularInline):
     model = PicturePosition
     verbose_name_plural = "Picture Positions"
@@ -77,30 +86,37 @@ class PicturePositionInline(CachedFKFormfieldMixin, GenericTabularInline):
         return qs
 
 
-
 @admin.register(InfoItemVersion)
 class InfoItemVersionAdmin(CustomModelAdmin):
     fieldsets = [
         (None, {
             'fields': (
-                ('infoitem', 'versionkind'),
-                'versioncomment', 'text', 'references', '_createdat',
+                'infoitem', 'versionkind',
+                ('versioncomment', 'references'),
+                ('text', '_createdat'),
             )
         }),
     ]
     filter_horizontal = ['references']
     formfield_overrides = {
         TextField: {'widget': Textarea(attrs={'rows': 10, 'cols': 50})},
+        ForeignKey: {'widget': TextInput(attrs={'size': 20})},
     }
-    inlines = [PicturePositionInline]
+    inlines = [PicturePositionInline, InfoItemVersionPassiveKnowledgeInline]
     list_display = [
-        'id', 'infoitem', 'versionkind', 'versioncomment', 'text',
+        'get_infoitem', 'versionkind', 'versioncomment', 'text',
         '_createdat',
     ]
-    list_editable = ['infoitem', 'versionkind', 'versioncomment', 'text']
+    list_editable = ['versionkind', 'versioncomment', 'text']
     list_filter = ['infoitem__enigmalevel', 'versionkind']
     search_fields = ['text', 'versioncomment']
     readonly_fields = ['_createdat']
+
+    @admin.display(description="InfoItem")
+    def get_infoitem(self, obj):
+        if len(str(obj.infoitem)) > 70:
+            return str(obj.infoitem)[:70] + '...'
+        return str(obj.infoitem)
 
 
 #  ------------------------------------------------------------

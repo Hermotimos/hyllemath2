@@ -260,7 +260,7 @@ class Knowledge(Model):
 
     def __str__(self):
         return mark_safe(
-            f'{self.character} -> <span style="color: #00ff00;">{self.content_object}</span>'
+            f'{self.character} -> <span style="color: Khaki;font-weight:normal;">{self.content_object}</span>'
         )
 
 

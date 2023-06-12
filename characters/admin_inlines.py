@@ -9,7 +9,7 @@ from characters.models import  (
     CharacterVersion, FamilyName, FirstName, Knowledge,
 )
 from myproject.utils_admin import (
-    CachedFKFormfieldMixin, CachedFormfieldsAllMixin,
+    CachedFKFormfieldMixin, CachedFormfieldsAllMixin, INLINE_HEADER,
 )
 
 
@@ -111,14 +111,20 @@ class ContentTypeKnowledgeInline(CachedFKFormfieldMixin, admin.TabularInline):
 
 class CharacterVersionKnowledgeInline(ContentTypeKnowledgeInline):
     content_type_model = "CharacterVersion"
+    verbose_name_plural = format_html(
+        INLINE_HEADER, 'Knowledges', 'CharacterVersions known by this Character')
 
 
 class LocationVersionKnowledgeInline(ContentTypeKnowledgeInline):
     content_type_model = "LocationVersion"
+    verbose_name_plural = format_html(
+        INLINE_HEADER, 'Knowledges', 'LocationVersions known by this Character')
 
 
 class InfoItemVersionKnowledgeInline(ContentTypeKnowledgeInline):
     content_type_model = "InfoItemVersion"
+    verbose_name_plural = format_html(
+        INLINE_HEADER, 'Knowledges', 'InfoItemVersions known by this Character')
 
     def get_queryset(self, request):
         """
@@ -134,15 +140,18 @@ class InfoItemVersionKnowledgeInline(ContentTypeKnowledgeInline):
 #  ------------------------------------------------------------
 
 
-class KnowledgePassiveInline(CachedFKFormfieldMixin, GenericTabularInline):
+class BasePassiveKnowledgeInline(CachedFKFormfieldMixin, GenericTabularInline):
     model = Knowledge
-    # fk_name = 'character'
-    verbose_name_plural = "Knowledges (this character version is known by these characters)"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = qs.prefetch_related('content_object')
         return qs
+
+
+class CharacterVersionPassiveKnowledgeInline(BasePassiveKnowledgeInline):
+    verbose_name_plural = format_html(
+        INLINE_HEADER, 'Knowledges', 'Characters knowing this CharacterVersion')
 
 
 #  ------------------------------------------------------------

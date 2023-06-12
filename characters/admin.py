@@ -11,7 +11,7 @@ from characters.admin_inlines import (
     FirstNameInline, FamilyNameInline, CharacterVersionInline,
     CharacterVersionKnowledgeInline, LocationVersionKnowledgeInline,
     InfoItemVersionKnowledgeInline,
-    KnowledgePassiveInline,
+    CharacterVersionPassiveKnowledgeInline,
 )
 from characters.models import  (
     Character,
@@ -220,7 +220,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
         CharField: {'widget': TextInput(attrs={'size': 12})},
         ForeignKey: {'widget': Select(attrs={'style': 'width:150px'})},
     }
-    inlines = [KnowledgePassiveInline]
+    inlines = [CharacterVersionPassiveKnowledgeInline]
     list_display = [
         'get_img', 'fullname', 'versionkind', 'versioncomment',
         'isalive', 'isalterego',
