@@ -23,6 +23,7 @@ class Picture(Model):
     class Category(TextChoices):
         CHARACTER = "character", "character"
         CREATURE = "creature", "creature"
+        INFO = "info", "info"
         ITEM = "item", "item"
         LOCATION = "location", "location"
         LOCATIONTYPE = "locationtype", "locationtype"

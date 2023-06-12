@@ -92,7 +92,7 @@ class InfoItemVersion(Model):
         ordering = ["infoitem", "versionkind"]
         constraints = [
             UniqueConstraint(
-                fields=['infoitem', 'text', 'versionkind'],
+                fields=['infoitem', 'versionkind'],
                 name='unique_infoitemversion_infoitem_versionkind'),
             UniqueConstraint(
                 fields=['infoitem'],

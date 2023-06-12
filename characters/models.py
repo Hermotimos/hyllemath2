@@ -5,7 +5,7 @@ from django.db.models import (
     CASCADE, PROTECT, SET_NULL, SET_DEFAULT, TextChoices, Model, Manager, F,
     CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField, Q,
     IntegerField, PositiveSmallIntegerField, TextField, BooleanField,
-    ManyToManyField as M2M, Index, UniqueConstraint,
+    ManyToManyField as M2M, Index, UniqueConstraint, OneToOneField,
 )
 from django.db.models.functions import Collate
 from django.urls import reverse
@@ -164,6 +164,7 @@ class CharacterManager(Manager):
 
 
 class Character(Model):
+    # Only stuff invisible to Players, all visible is in CharacterVersion
     objects = CharacterManager()
 
     user = FK(User, related_name='characters', default=get_gamemaster, on_delete=CASCADE)
@@ -176,7 +177,6 @@ class Character(Model):
     dialoguepackets = M2M(
         'DialoguePacket',
         through='DialoguePacket_characters', blank=True)
-    # biopackets = M2M(to=BiographyPacket, related_name='characters', blank=True)
     # subprofessions = M2M(to=SubProfession, related_name='characters', blank=True)
     # skilllevels = M2M(
     #     to=SkillLevel,
@@ -313,6 +313,9 @@ class CharacterVersion(Model):
         blank=True, null=True)  # blank/null for player-created ones
     frequentedlocationversions = M2M(       # versions may have different 'inhabitants'
         "locations.LocationVersion", related_name='characters', blank=True)
+
+    infopacketset = OneToOneField(
+        'infos.InfoPacketSet', on_delete=PROTECT, blank=True, null=True)
 
     tags = M2M(CharacterVersionTag, related_name='characterversions', blank=True)
     knowledges = GenericRelation(Knowledge)

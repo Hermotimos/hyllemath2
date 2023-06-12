@@ -4,7 +4,7 @@ from django.db.models import (
     CASCADE, PROTECT, SET_NULL, SET_DEFAULT, TextChoices, Model, Manager, F,
     CharField, ForeignKey as FK, DateTimeField, PositiveIntegerField,
     IntegerField, PositiveSmallIntegerField, TextField, BooleanField,
-    ManyToManyField as M2M, UniqueConstraint, Q,
+    ManyToManyField as M2M, UniqueConstraint, Q, OneToOneField,
 )
 from django.db.models.functions import Collate
 from django.utils.html import format_html
@@ -176,9 +176,9 @@ class LocationVersion(Model):
     # mainaudio = FK(
     #     to=Audio, related_name='locationversions', on_delete=PROTECT,
     #     blank=True, null=True)
-    # picturesets = M2M(to=PictureSet, related_name='locationversions', blank=True)
     # audiosets = M2M(AudioSet, related_name='locationversions', blank=True)
-    # infopackets = M2M(to=InfoPacket, related_name='locationversions', blank=True)
+    infopacketset = OneToOneField(
+        'infos.InfoPacketSet', on_delete=PROTECT, blank=True, null=True)
     knowledges = GenericRelation('characters.Knowledge')
 
     _createdat = DateTimeField(auto_now_add=True)   # TODO players see DISTINCT ON (location) ORDER BY _createdat DESC
