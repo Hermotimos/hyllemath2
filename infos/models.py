@@ -138,7 +138,7 @@ class InfoPacket(Model):
 
 
 class InfoItemPosition(Model):
-    """A model for positioning InfoItem-s within InfoPacket's."""
+    """A model for positioning InfoItem-s within InfoPacket-s."""
 
     infoitem = FK(InfoItem, related_name='positionsininfopackets', on_delete=CASCADE)
     infopacket = FK(InfoPacket, related_name='infoitempositions', on_delete=CASCADE)
@@ -146,7 +146,7 @@ class InfoItemPosition(Model):
 
     class Meta:
         ordering = ['infopacket', 'position']
-        unique_together = ['infopacket', 'infoitem']
+        unique_together = ['infoitem', 'infopacket']
 
     def __str__(self):
         return f"{self.infopacket} -> {self.infoitem}"
@@ -156,12 +156,33 @@ class InfoItemPosition(Model):
 
 
 class InfoPacketSet(Model):
-    title = CharField(max_length=100)
+    title = CharField(max_length=100, unique=True)
     infopackets = M2M(InfoPacket, related_name='infopacketsets')
-    # skills = M2M(to=Skill, related_name='infopacketsets')
+    # skills = M2M(
+    #     Skill, through='InfoPacketSetPosition', related_name='infopacketsets')
 
     class Meta:
         ordering = [Collate('title', 'pl-PL-x-icu')]
 
     def __str__(self):
         return self.title
+
+
+#  ------------------------------------------------------------
+
+# TODO: When rules.Skill is ready decide if M2M field goes here or there.
+# This is for: Skill=History, InfoPacketSets=[History of Kalshad, History of Hyllemath, ...]
+
+# class InfoPacketSetPosition(Model):
+#     """A model for positioning InfoPacketset-s within Skill-s."""
+
+#     infopacketset = FK(InfoItem, related_name='positionsiniskills', on_delete=CASCADE)
+#     skill = FK(InfoPacket, related_name='infopacketsetpositions', on_delete=CASCADE)
+#     position = IntegerField(default=1)
+
+#     class Meta:
+#         ordering = ['skill', 'position']
+#         unique_together = ['infopacketset', 'skill']
+
+#     def __str__(self):
+#         return f"{self.skill}: [{self.position}] {self.infopacketset}"

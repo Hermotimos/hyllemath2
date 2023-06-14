@@ -207,7 +207,7 @@ class CharacterVersionAdmin(CustomModelAdmin):
                 ('character', 'picture'),
                 ('firstname', 'familyname', 'nickname', 'originname',),
                 ('versionkind', 'versioncomment', 'isalive', 'isalterego'),
-                'description',
+                'description', 'infopacketset', 
                 'frequentedlocationversions',
                 'tags',
                 '_createdat',
@@ -225,13 +225,13 @@ class CharacterVersionAdmin(CustomModelAdmin):
         'get_img', 'fullname', 'versionkind', 'versioncomment',
         'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
-        'description',
+        'description', 'infopacketset',
         '_createdat',
     ]
     list_editable = [
         'versionkind', 'versioncomment', 'isalive', 'isalterego',
         'firstname', 'familyname', 'nickname', 'originname',
-        'description',
+        'description', 'infopacketset',
     ]
     list_per_page = 50
     ordering = ['character___mainversionname', 'versionkind']

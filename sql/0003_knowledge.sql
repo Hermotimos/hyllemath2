@@ -138,25 +138,55 @@ SELECT setval('infos_infoitemversion_references_id_seq', 1 + (SELECT MAX(id) FRO
 
 
 
---prosoponomikon_character_biography_packets
---toponomikon_location_knowledge_packets
-
--- TODO: Zrobić PacketSety 1:1 dla Lokacji i Psotaci - wersji
+-- Character + BiographyPacket --> CharacterVersion + InfoPacketSet (of InfoPackets made of BiographyPackets)
 
 WITH imported AS (
 	SELECT * FROM dblink(
 		'hyllemath',
 		$$
-			SELECT cbp.character_id, bp.title
+			SELECT cbp.character_id, c.fullname, bp.title
 			FROM prosoponomikon_character_biography_packets cbp
 			JOIN knowledge_biographypacket bp ON bp.id = cbp.biographypacket_id
+			JOIN prosoponomikon_character c ON c.id = cbp.character_id
+			ORDER BY c.fullname
 		$$)
-		AS imported(characterid int, biographypackettitle text)
+		AS imported(characterid int, fullname text, biographypackettitle TEXT)
+),
+ins_infopacketsets AS (
+	INSERT INTO infos_infopacketset (title)
+	SELECT DISTINCT fullname
+	FROM imported
+	RETURNING *
+),
+ins_infopacketset_infopackets AS (
+	INSERT INTO infos_infopacketset_infopackets (infopacketset_id, infopacket_id)
+	SELECT ips.id, ip.id
+	FROM ins_infopacketsets ips
+	JOIN imported ON imported.fullname = ips.title
+	JOIN infos_infopacket ip ON ip.title = imported.biographypackettitle
+	RETURNING *
 )
-INSERT INTO characters_character_infopackets (character_id, infopacket_id)
-SELECT imported.characterid,
-FROM imported
-JOIN infos_info
+UPDATE characters_characterversion
+SET infopacketset_id = ips.id
+FROM infos_infopacketset ips
+WHERE versionkind = '2. MAIN' AND ips.title = fullname;
+
+-- No need here for updates of id SEQUENCE, as defaults are in use.
+
+
+
+
+SELECT * FROM dblink(
+		'hyllemath',
+		$$
+			SELECT cbp.character_id, c.fullname, bp.title
+			FROM prosoponomikon_character_biography_packets cbp
+			JOIN knowledge_biographypacket bp ON bp.id = cbp.biographypacket_id
+			JOIN prosoponomikon_character c ON c.id = cbp.character_id
+			ORDER BY c.fullname
+		$$)
+		AS imported(characterid int, fullname text, biographypackettitle TEXT)
+
 
 
 DONE
@@ -171,12 +201,10 @@ knowledge_mappacket_acquired_by
 knowledge_reference
 knowledge_knowledgepacket_references
 
-
+prosoponomikon_character_biography_packets
 
 
 TODO
-prosoponomikon_character_biography_packets
-toponomikon_location_knowledge_packets
 
 knowledge_knowledgepacket_picture_sets
 knowledge_biographypacket_picture_sets
@@ -192,12 +220,15 @@ knowledge_mappacket_picture_sets
 -- ----------------------------------------------------------------------------
 -- INFOS TODO:
 /*
-  1) knowledge_knowledgepacket_skills
- 	2) InfoItem - trzeba nadać 'enigmalevel', bo z defaultu wszędzie 0.
-  3) KnowledgePackets, BiographyPackets i MapPackets z Hyllemath 1.0 są wrzucone w całości jako 1 InfoPacket z 1 InfoItem.
-  		Natomiast trzeba jeszcze wydzielić osobne InfoItem's z tego jednego.
+      1) knowledge_knowledgepacket_skills
+  2) InfoItem - trzeba nadać 'enigmalevel', bo z defaultu wszędzie 0.
+    3) KnowledgePackets, BiographyPackets i MapPackets z Hyllemath 1.0 są wrzucone w całości jako 1 InfoPacket z 1 InfoItem.
+      Natomiast trzeba jeszcze wydzielić osobne InfoItem's z tego jednego.
   		To będzie duża robota już na później, po migracji wszystkich danych. Być może zostawić ją w ogóle już na Hyllemath 2.0.
-
+	4) Nie przenoszę tabeli "toponomikon_location_knowledge_packets" czyli powiązania KnowledgePacket do Location,
+			a to dlatego, że InfoPacketSet-y dla LocationVersion trzeba będzie zbudować teraz od nowa.
+			TODO: Trzeba oznaczyć sobie w osobnym widoku wszystkie "luźne" InfoPacket-y i InfoItem/Version, żeby wiedzieć,
+						czeka na podpięcie i uporządkowanie.
 
 */
 
