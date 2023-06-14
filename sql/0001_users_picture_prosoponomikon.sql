@@ -319,9 +319,9 @@ imported AS (
 ,
 ins_characters AS (
   INSERT INTO characters_character (
-  	id, user_id, strength, dexterity, endurance, power, experience, _createdat, _createdby_id
+    id, user_id, strength, dexterity, endurance, power, experience, _createdat, _createdby_id
   )
-  SELECT profileid, userid, strength, dexterity, endurance, 1, experience, current_timestamp, createdbyid 	   -- characters have ids from profiles
+  SELECT profileid, userid, strength, dexterity, endurance, 1, experience, current_timestamp, createdbyid      -- characters have ids from profiles
   FROM imported
   RETURNING *
 ),
@@ -388,8 +388,8 @@ FROM dblink(
       AND (a.knows_as_image = '') IS NOT FALSE
   $$)
   AS imported(
-	  id int, is_direct boolean, knowing_character_id int, known_character_id int,
-	  characterid int, profileid int, fullname text);
+    id int, is_direct boolean, knowing_character_id int, known_character_id int,
+    characterid int, profileid int, fullname text);
 
 SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters_knowledge));
 
@@ -555,9 +555,9 @@ SELECT setval('characters_dialoguepacket_characters_id_seq', 1 + (SELECT MAX(id)
 -- ----------------------------------------------------------------------------
 -- Ściągawka Hyllemath 1.0 ==> Hyllemath 2.0
 /*
- 			User.id 			==> 	User.id
-			Profile.id 		==> 	Character.id
-			Character.id 	==> 	CharacterVersion.id
+    User.id        ==>   User.id
+    Profile.id     ==>   Character.id
+    Character.id   ==>   CharacterVersion.id
 
 */
 -- CHARACTERS TODO:
@@ -570,7 +570,7 @@ SELECT setval('characters_dialoguepacket_characters_id_seq', 1 + (SELECT MAX(id)
       żeby pasowały do podmienionych powyżej ścieżek.
 
   4) Ręcznie uporządkować sytuację z CharacterVersion / Knowledge stworzonymi przez Graczy.
-  		Tam nie powinno być Character żadnego (character_id = NULL dlatego jest nullable).
+      Tam nie powinno być Character żadnego (character_id = NULL dlatego jest nullable).
 
 
 */

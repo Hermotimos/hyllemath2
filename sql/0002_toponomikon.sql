@@ -1,6 +1,6 @@
 /*
 Data migrations for:
-	* 'toponomikon' app
+  * 'toponomikon' app
 
 */
 
@@ -15,17 +15,17 @@ SELECT dblink_connect('hyllemath','host=localhost port=5432 dbname=hyllemath use
 -- LocationType --> LocationType
 
 WITH imported AS (
-	SELECT * FROM dblink(
-		'hyllemath',
-		$$
-			SELECT lt.id, name, name_plural, default_img_id, order_no, pi.image, pi.description
-			FROM toponomikon_locationtype lt
-			JOIN imaginarion_picture p ON p.id = lt.default_img_id
-			JOIN imaginarion_pictureimage pi ON pi.id = p.image_id
-		$$)
-		AS imported(
-			id int, name text, name_plural text, default_img_id int, order_no int,
-			pictureimageurl TEXT, pictureimagedescription text)
+  SELECT * FROM dblink(
+    'hyllemath',
+    $$
+      SELECT lt.id, name, name_plural, default_img_id, order_no, pi.image, pi.description
+      FROM toponomikon_locationtype lt
+      JOIN imaginarion_picture p ON p.id = lt.default_img_id
+      JOIN imaginarion_pictureimage pi ON pi.id = p.image_id
+    $$)
+    AS imported(
+      id int, name text, name_plural text, default_img_id int, order_no int,
+      pictureimageurl TEXT, pictureimagedescription text)
 ),
 ins_pictures AS (
   INSERT INTO resources_picture (title, category, image)
@@ -49,20 +49,20 @@ SELECT * FROM locations_locationtype;
 -- Location, PictureImage --> Location, LocationName, Picture, LocationVersion
 
 WITH imported AS (
-	SELECT * FROM dblink(
-		'hyllemath',
-		$$
-			SELECT l.id, l.name, l.description, l.in_location_id, l.location_type_id, pi.image, pi.description,
-				CASE WHEN l.name LIKE '% %' THEN NULL ELSE l.name END, 	-- propername
-				CASE WHEN l.name LIKE '% %' THEN l.name ELSE NULL END 	-- descriptivename
-			FROM toponomikon_location l
-			JOIN imaginarion_picture p ON p.id = l.main_image_id
-			JOIN imaginarion_pictureimage pi ON pi.id = p.image_id
-		$$)
-		AS imported(
-			id int, name TEXT, description TEXT, in_location_id int, location_type_id int,
-			pictureimageurl TEXT, pictureimagedescription TEXT,
-			propername TEXT, descriptivename text)
+  SELECT * FROM dblink(
+    'hyllemath',
+    $$
+      SELECT l.id, l.name, l.description, l.in_location_id, l.location_type_id, pi.image, pi.description,
+        CASE WHEN l.name LIKE '% %' THEN NULL ELSE l.name END,   -- propername
+        CASE WHEN l.name LIKE '% %' THEN l.name ELSE NULL END   -- descriptivename
+      FROM toponomikon_location l
+      JOIN imaginarion_picture p ON p.id = l.main_image_id
+      JOIN imaginarion_pictureimage pi ON pi.id = p.image_id
+    $$)
+    AS imported(
+      id int, name TEXT, description TEXT, in_location_id int, location_type_id int,
+      pictureimageurl TEXT, pictureimagedescription TEXT,
+      propername TEXT, descriptivename text)
 ),
 ins_pictures AS (
   INSERT INTO resources_picture (title, category, image)
@@ -71,27 +71,27 @@ ins_pictures AS (
   RETURNING  *
 ),
 locationnames AS (
-	INSERT INTO locations_locationname (nominative)
-	SELECT DISTINCT propername
-	FROM imported
-	WHERE propername IS NOT NULL
-	RETURNING id, nominative
+  INSERT INTO locations_locationname (nominative)
+  SELECT DISTINCT propername
+  FROM imported
+  WHERE propername IS NOT NULL
+  RETURNING id, nominative
 ),
 ins_locations AS (
-	INSERT INTO locations_location (id, _mainversionname, inlocation_id, locationtype_id, _createdat)
-	SELECT imported.id, imported.name, imported.in_location_id, imported.location_type_id, current_timestamp
-	FROM imported
-	RETURNING *
+  INSERT INTO locations_location (id, _mainversionname, inlocation_id, locationtype_id, _createdat)
+  SELECT imported.id, imported.name, imported.in_location_id, imported.location_type_id, current_timestamp
+  FROM imported
+  RETURNING *
 ),
 ins_locationversions AS (
-	INSERT INTO locations_locationversion (
-		id, location_id, propername_id, descriptivename, name,
-		versionkind, description, picture_id, _createdat)
-	SELECT imported.id, imported.id, locn.id, CASE WHEN imported.name LIKE '% %' THEN imported.name ELSE NULL END, imported.name,
-		'1. MAIN', imported.description, pic.id, current_timestamp
-	FROM imported
-	LEFT JOIN locationnames locn ON locn.nominative = imported.name
-	LEFT JOIN ins_pictures pic ON imported.pictureimageurl = pic.image
+  INSERT INTO locations_locationversion (
+    id, location_id, propername_id, descriptivename, name,
+    versionkind, description, picture_id, _createdat)
+  SELECT imported.id, imported.id, locn.id, CASE WHEN imported.name LIKE '% %' THEN imported.name ELSE NULL END, imported.name,
+    '1. MAIN', imported.description, pic.id, current_timestamp
+  FROM imported
+  LEFT JOIN locationnames locn ON locn.nominative = imported.name
+  LEFT JOIN ins_pictures pic ON imported.pictureimageurl = pic.image
   RETURNING *
 )
 SELECT count(*) FROM ins_locationversions;
@@ -130,7 +130,7 @@ INSERT INTO characters_knowledge (isdirect, character_id, object_id, content_typ
 SELECT DISTINCT ON (imported.location_id, profileid)
   is_direct, profileid, lver.id, (SELECT id FROM contenttype)
 FROM imported JOIN locations_locationversion lver ON lver.location_id = imported.location_id
-ORDER BY imported.location_id, profileid, is_direct DESC 	-- isdirect = TRUE FIRST: in case of duplicates take direct knowledge in DISTINCT ON
+ORDER BY imported.location_id, profileid, is_direct DESC   -- isdirect = TRUE FIRST: in case of duplicates take direct knowledge in DISTINCT ON
 RETURNING *;
 
 SELECT setval('characters_knowledge_id_seq', 1 + (SELECT MAX(id) FROM characters_knowledge));
@@ -146,11 +146,11 @@ SELECT * FROM dblink(
     SELECT id, character_id, location_id
     FROM prosoponomikon_character_frequented_locations
   $$)
-	AS imported(id int, character_id int, location_id int);
+  AS imported(id int, character_id int, location_id int);
 
 SELECT setval(
-	'characters_characterversion_frequentedlocationversions_id_seq',
-	1 + (SELECT MAX(id) FROM characters_characterversion_frequentedlocationversions));
+  'characters_characterversion_frequentedlocationversions_id_seq',
+  1 + (SELECT MAX(id) FROM characters_characterversion_frequentedlocationversions));
 
 
 
@@ -159,18 +159,18 @@ SELECT setval(
 
 INSERT INTO characters_characterversion_frequentedlocationversions (characterversion_id, locationversion_id)
 SELECT cv.id, locationversion_id
-	-- , cv.fullname AS version_missing_locations_fullname, c."_mainversionname" AS mainversionname, cv2.fullname AS mainversionname2, cvfl.*
+  -- , cv.fullname AS version_missing_locations_fullname, c."_mainversionname" AS mainversionname, cv2.fullname AS mainversionname2, cvfl.*
 FROM characters_characterversion cv
 JOIN characters_character c ON c.id = cv.character_id
 JOIN characters_characterversion cv2 ON cv2.character_id = c.id
 JOIN characters_characterversion_frequentedlocationversions cvfl ON cvfl.characterversion_id = cv2.id
 WHERE cv.versionkind NOT IN ('2. MAIN', '6. BYPLAYER')
-	AND cv2.versionkind = '2. MAIN'
+  AND cv2.versionkind = '2. MAIN'
 RETURNING *;
 
 SELECT setval(
-	'characters_characterversion_frequentedlocationversions_id_seq',
-	1 + (SELECT MAX(id) FROM characters_characterversion_frequentedlocationversions));
+  'characters_characterversion_frequentedlocationversions_id_seq',
+  1 + (SELECT MAX(id) FROM characters_characterversion_frequentedlocationversions));
 
 
 
