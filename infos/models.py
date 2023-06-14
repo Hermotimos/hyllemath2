@@ -29,7 +29,17 @@ class Reference(Model):
 #  ------------------------------------------------------------
 
 
+class InfoItemManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.prefetch_related('infoitemversions')
+        qs = qs.select_related('_createdby')
+        return qs
+
+
 class InfoItem(Model):
+    objects = InfoItemManager()
+
     class EnigmaLevel(TextChoices):
         _0 = "0", "0"
         _1 = "1", "1"
@@ -155,7 +165,18 @@ class InfoItemPosition(Model):
 #  ------------------------------------------------------------
 
 
+class InfoPacketSetManager(Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.prefetch_related(
+            'infopackets',
+        )
+        return qs
+
+
 class InfoPacketSet(Model):
+    objects = InfoPacketSetManager()
+    
     title = CharField(max_length=100, unique=True)
     infopackets = M2M(InfoPacket, related_name='infopacketsets')
     # skills = M2M(
