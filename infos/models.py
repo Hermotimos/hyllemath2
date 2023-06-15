@@ -117,20 +117,19 @@ class InfoItemVersion(Model):
 #  ------------------------------------------------------------
 
 
+class InfoPacketKind(Model):
+    name = CharField(max_length=100, unique=True)
+    description = TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class InfoPacket(Model):
-    INFO_PACKET_KINDS = [
-        # temp for data migration - TODO: change to specific
-        ("TEMP-0-GENERAL",   "TEMP-0-GENERAL"),
-        # characters
-        ("CHA-1-BIOGRAPHY",  "CHA-1-BIOGRAPHY"),
-        ("CHA-2-SECRETS",    "CHA-2-SECRETS"),
-        # locations
-        ("LOC-1-GEOGRAPHY",  "LOC-1-GEOGRAPHY"),
-        ("LOC-2-BIOLOGY",    "LOC-2-BIOLOGY"),
-        ("LOC-3-ECONOMICS",  "LOC-3-ECONOMICS"),
-    ]
-    infopacketkind = CharField(
-        max_length=100, choices=INFO_PACKET_KINDS, default="TEMP-0-GENERAL")
+    infopacketkind = FK(InfoPacketKind, on_delete=PROTECT)
     title = CharField(max_length=100)
     # picture = FK(
     #     Picture, related_name='infopackets', on_delete=PROTECT,
@@ -176,7 +175,7 @@ class InfoPacketSetManager(Manager):
 
 class InfoPacketSet(Model):
     objects = InfoPacketSetManager()
-    
+
     title = CharField(max_length=100, unique=True)
     infopackets = M2M(InfoPacket, related_name='infopacketsets')
     # skills = M2M(

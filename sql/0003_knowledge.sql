@@ -10,6 +10,46 @@ SELECT dblink_connect('hyllemath','host=localhost port=5432 dbname=hyllemath use
 
 
 
+INSERT INTO infos_infopacketkind (name, description)
+  VALUES
+    ('TEMP-0-GENERAL', 'tymczasowo, potem nadać konkretne'),
+
+    ('CHA-1-BIOGRAPHY', 'Postać - Biografia'),
+    ('CHA-2-SECRETS', 'Postać - Sekrety'),
+
+    ('LOC-1a-GEOGRAPHY', 'Lokacja-Geografia: Abstrakt'),
+    ('LOC-1b-GEOGRAPHY', 'Lokacja-Geografia: Położenie (względem innych lokacji)'),
+    ('LOC-1c-GEOGRAPHY', 'Lokacja-Geografia: Rzeźba terenu i klimat'),
+    ('LOC-1d-GEOGRAPHY', 'Lokacja-Geografia: Ciekawostki'),
+
+    ('LOC-2a-BIOLOGY', 'Lokacja-Geografia: Abstrakt'),
+    ('LOC-2b-BIOLOGY', 'Lokacja-Geografia: Flora i Fauna'),
+    ('LOC-2c-BIOLOGY', 'Lokacja-Geografia: Ciekawostki'),
+
+    ('LOC-3a-ECONOMY', 'Lokacja-Kultura: Abstrakt'),
+    ('LOC-3b-ECONOMY', 'Lokacja-Kultura: Osadnictwo'),
+    ('LOC-3c-ECONOMY', 'Lokacja-Kultura: Główne miejsca kultu'),
+    ('LOC-3d-ECONOMY', 'Lokacja-Kultura: Rolnictwo'),
+    ('LOC-3e-ECONOMY', 'Lokacja-Kultura: Rzemiosło'),
+    ('LOC-3f-ECONOMY', 'Lokacja-Kultura: Górnictwo'),
+    ('LOC-3g-ECONOMY', 'Lokacja-Kultura: Handel'),
+    ('LOC-3h-ECONOMY', 'Lokacja-Kultura: Ciekawostki'),
+
+    ('LOC-4a-HISTORY', 'Lokacja-Historia: Abstrakt'),
+    ('LOC-4b-HISTORY', 'Lokacja-Historia: Dawna'),
+    ('LOC-4c-HISTORY', 'Lokacja-Historia: Najnowsza'),
+    ('LOC-4d-HISTORY', 'Lokacja-Historia: Ciekawostki'),
+
+    ('LOC-5a-POLITICS', 'Lokacja-Historia: Abstrakt'),
+    ('LOC-5b-POLITICS', 'Lokacja-Historia: Dawna'),
+    ('LOC-5c-POLITICS', 'Lokacja-Historia: Najnowsza'),
+    ('LOC-5d-POLITICS', 'Lokacja-Historia: Ciekawostki'),
+
+    ('LOC-6a-VARIA', 'Lokacja-Historia: Varia');
+
+
+
+
 -- Knowledge / Biography / Map Packet --> InfoPacket + InfoItem + InfoItemVersion + InfoItemPosition
 -- Knowledge / Biography / Map Packet  + Profile (acquired_by) --> InfoItemVersion + Knowledge
 
@@ -33,8 +73,8 @@ imported_new_ids AS (
   FROM imported
 ),
 ins_infopackets AS (
-  INSERT INTO infos_infopacket (id, title, infopacketkind)
-  SELECT new_id, title, 'TEMP-0-GENERAL'
+  INSERT INTO infos_infopacket (id, title, infopacketkind_id)
+  SELECT new_id, title, (SELECT id FROM infos_infopacketkind WHERE name = 'TEMP-0-GENERAL')
   FROM imported_new_ids
 ),
 ins_infoitems AS (
@@ -157,45 +197,30 @@ ins_infopacketsets AS (
   SELECT DISTINCT fullname
   FROM imported
   RETURNING *
-),
-ins_infopacketset_infopackets AS (
-  INSERT INTO infos_infopacketset_infopackets (infopacketset_id, infopacket_id)
-  SELECT ips.id, ip.id
-  FROM ins_infopacketsets ips
-  JOIN imported ON imported.fullname = ips.title
-  JOIN infos_infopacket ip ON ip.title = imported.biographypackettitle
-  RETURNING *
 )
+INSERT INTO infos_infopacketset_infopackets (infopacketset_id, infopacket_id)
+SELECT ips.id, ip.id
+FROM ins_infopacketsets ips
+JOIN imported ON imported.fullname = ips.title
+JOIN infos_infopacket ip ON ip.title = imported.biographypackettitle;
+
+
 UPDATE characters_characterversion
-SET infopacketset_id = ips.id
-FROM infos_infopacketset ips
-WHERE versionkind = '2. MAIN' AND ips.title = fullname;
+	SET infopacketset_id = ips.id
+	FROM infos_infopacketset ips
+	WHERE versionkind = '2. MAIN' AND ips.title = fullname;
 
 -- No need here for updates of id SEQUENCE, as defaults are in use.
 
 
 
 
-DONE
-knowledge_dialoguepacket
-knowledge_knowledgepacket
-knowledge_biographypacket
-knowledge_mappacket
-knowledge_knowledgepacket_acquired_by
-knowledge_biographypacket_acquired_by
-knowledge_mappacket_acquired_by
 
-knowledge_reference
-knowledge_knowledgepacket_references
-
-prosoponomikon_character_biography_packets
-
-
-TODO
-
-knowledge_knowledgepacket_picture_sets
-knowledge_biographypacket_picture_sets
-knowledge_mappacket_picture_sets
+--TODO
+--
+--knowledge_knowledgepacket_picture_sets
+--knowledge_biographypacket_picture_sets
+--knowledge_mappacket_picture_sets
 
 
 
@@ -226,8 +251,10 @@ knowledge_mappacket_picture_sets
 TRUNCATE infos_infopacket CASCADE;
 TRUNCATE infos_infoitem CASCADE;
 TRUNCATE infos_infoitemposition CASCADE;
+TRUNCATE infos_reference CASCADE;
+TRUNCATE infos_infoitemversion_references CASCADE;
 TRUNCATE characters_knowledge CASCADE;
-
-
+TRUNCATE infos_infopacketkind CASCADE;
+TRUNCATE infos_infopacketset CASCADE;
 */
 
