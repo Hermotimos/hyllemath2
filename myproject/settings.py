@@ -233,8 +233,18 @@ if os.getenv("GAE_ENV", "").startswith("standard"):
 
     # TODO check if only one is needed: GS_CREDENTIALS or GS_DEFAULT_ACL
 
-    DEFAULT_FILE_STORAGE = "myproject.storages.GoogleCloudMediaFileStorage"
-    STATICFILES_STORAGE = "myproject.storages.GoogleCloudStaticFileStorage"
+    # deprecated in Django 4.2
+    # DEFAULT_FILE_STORAGE = "myproject.storages.GoogleCloudMediaFileStorage"
+    # STATICFILES_STORAGE = "myproject.storages.GoogleCloudStaticFileStorage"
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "myproject.storages.GoogleCloudMediaFileStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "myproject.storages.GoogleCloudStaticFileStorage",
+        },
+    }
 
     GS_PROJECT_ID = "hyllemath2"
     GS_BUCKET_NAME = env("GS_BUCKET_NAME")
